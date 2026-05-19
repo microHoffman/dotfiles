@@ -11,6 +11,13 @@ published skills with `npx skills add`.
 
 ## Useful guides
 
+### remote dev server
+
+Planning/runbook for the NixOS remote workstation lives in
+[`docs/remote-dev-server.md`](docs/remote-dev-server.md).
+Implementation handoff for the next session lives in
+[`docs/remote-dev-implementation-handoff.md`](docs/remote-dev-implementation-handoff.md).
+
 ### ssh-agent setup on hyprland
 
 https://www.lorenzobettini.it/2023/09/hyprland-and-ssh-agent/
