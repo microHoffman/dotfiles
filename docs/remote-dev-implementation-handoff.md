@@ -1,28 +1,37 @@
 # Remote Dev Implementation Handoff
 
-This handoff is for the next session that implements the NixOS remote
-development workstation in this repo.
+This handoff records the implemented NixOS remote development workstation
+baseline in this repo and the remaining manual install inputs.
 
 Read the full plan first:
 
 - [`remote-dev-server.md`](remote-dev-server.md)
 
 That file is the source of truth for decisions, scope, module structure,
-install flow, update flow, and validation. This handoff only summarizes how to
-pick up the implementation.
+install flow, update flow, and validation. This handoff summarizes how to pick
+up installation or further refinement.
 
 ## Current Repo State
 
-- The dotfiles repo is intentionally small.
-- Planning docs have been added under `docs/`.
-- `README.md` links to the remote dev docs.
-- No Nix implementation files have been created yet.
+- `nix/flake.nix` defines NixOS host `remote-dev`.
+- `nix/flake.lock` pins the current inputs.
+- `nix/hosts/remote-dev` contains the host, generic VPS hardware, and disko
+  layout.
+- `nix/modules/nixos` contains system modules for users, SSH/firewall,
+  Tailscale, Docker, nix-ld, zram, base server settings, and work directories.
+- `nix/modules/home` contains Home Manager modules for zsh, tmux, Git, Neovim,
+  ssh-agent, direnv/nix-direnv, and dev tools.
+- `scripts/remote-dev` contains validation, destructive install, rebuild,
+  update, and smoke-test helpers.
+- `docs/remote-dev-first-install.md` and `docs/remote-dev-maintenance.md`
+  contain the operational runbooks.
 
-## Implementation Goal
+## Implemented Goal
 
-Create a NixOS flake for host `remote-dev` with integrated Home Manager.
+The repo now has a NixOS flake for host `remote-dev` with integrated Home
+Manager.
 
-The resulting setup should support:
+The setup is intended to support:
 
 - NixOS install via `nixos-anywhere`
 - btrfs disk layout via `disko`
@@ -41,26 +50,15 @@ The resulting setup should support:
 
 ## Start Here
 
-Follow the implementation order in `remote-dev-server.md`.
+Before installing, review [`nix/shared/vars.nix`](../nix/shared/vars.nix), add a
+real public SSH key, confirm the target disk, and run:
 
-Expected first files:
-
-```text
-nix/
-  flake.nix
-  hosts/
-    remote-dev/
-      default.nix
-      disko.nix
-      hardware.nix
-  modules/
-    nixos/
-    home/
-  shared/
-    vars.nix
+```bash
+scripts/remote-dev/check-config.sh
 ```
 
-Do not run `nixos-anywhere` until the flake and disko layout have been reviewed.
+Do not run `nixos-anywhere` until the flake, disko layout, SSH keys, and disk
+name have been reviewed.
 
 ## Safety Boundaries
 
@@ -82,6 +80,35 @@ These can be filled in when the server exists:
 - local SSH client key path
 - Git user name/email exact values
 - public SSH key to authorize for initial user access
+
+Current phase-1 validation flow:
+
+- Validate the flake:
+
+  ```bash
+  nix flake check ./nix --show-trace
+  ```
+
+- Build the remote system closure without switching or installing anything:
+
+  ```bash
+  nix build ./nix#nixosConfigurations.remote-dev.config.system.build.toplevel --no-link
+  ```
+
+- The install preflight is expected to fail with the staged defaults until
+  `authorizedSshKeys` has at least one public key. After adding that key, run:
+
+  ```bash
+  scripts/remote-dev/check-config.sh
+  ```
+
+- If the local `/nix/store` is under pressure, use
+  `REMOTE_DEV_NIX_STORE=/tmp/dotfiles-nix-store` with the preflight and
+  `nix --store /tmp/dotfiles-nix-store build ...` for the system build.
+
+- Local VM testing is intentionally skipped in phase 1. The pre-VPS confidence
+  gate is config evaluation plus a full system build; runtime checks happen on
+  the actual VPS after first boot.
 
 ## Suggested Skills
 

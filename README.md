@@ -13,10 +13,17 @@ published skills with `npx skills add`.
 
 ### remote dev server
 
-Planning/runbook for the NixOS remote workstation lives in
+Planning and architecture notes for the NixOS remote workstation live in
 [`docs/remote-dev-server.md`](docs/remote-dev-server.md).
-Implementation handoff for the next session lives in
-[`docs/remote-dev-implementation-handoff.md`](docs/remote-dev-implementation-handoff.md).
+
+Operational runbooks:
+
+- [`docs/remote-dev-first-install.md`](docs/remote-dev-first-install.md)
+- [`docs/remote-dev-maintenance.md`](docs/remote-dev-maintenance.md)
+- [`docs/remote-dev-implementation-handoff.md`](docs/remote-dev-implementation-handoff.md)
+
+The flake entrypoint is [`nix/flake.nix`](nix/flake.nix) and the host target is
+`remote-dev`.
 
 ### ssh-agent setup on hyprland
 

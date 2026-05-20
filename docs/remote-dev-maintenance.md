@@ -1,0 +1,123 @@
+# Remote Dev Maintenance Runbook
+
+This is the normal operating path after the server has been installed and public
+SSH has been blocked.
+
+## Regular Rebuild
+
+On the server:
+
+```bash
+cd ~/dotfiles
+git pull
+sudo nixos-rebuild switch --flake ./nix#remote-dev
+```
+
+Or:
+
+```bash
+~/dotfiles/scripts/remote-dev/rebuild.sh
+```
+
+## Update Flake Inputs
+
+Updates are manual in phase 1.
+
+```bash
+cd ~/dotfiles
+scripts/remote-dev/update-flake.sh
+git diff nix/flake.lock
+sudo nixos-rebuild switch --flake ./nix#remote-dev
+scripts/remote-dev/verify-remote.sh
+git status --short
+git commit -am "Update remote dev flake inputs"
+```
+
+Before large updates, take a provider snapshot.
+
+## Roll Back a Bad Switch
+
+If SSH still works:
+
+```bash
+sudo nixos-rebuild list-generations
+sudo nixos-rebuild switch --rollback
+```
+
+If the machine is unreachable:
+
+1. Try the Tailscale address or MagicDNS name.
+2. Use the netcup console or rescue environment.
+3. Boot a previous NixOS generation if the boot menu is reachable.
+4. Restore a provider snapshot if needed.
+
+## Disk Checks
+
+Useful read-only checks:
+
+```bash
+df -h
+sudo btrfs filesystem usage /
+docker system df
+ncdu /nix
+ncdu /var/lib/docker
+ncdu ~/work
+```
+
+Manual cleanup only in phase 1:
+
+```bash
+sudo nix-collect-garbage
+docker system prune
+```
+
+Do not run destructive cleanup commands until you understand what they will
+remove. Keep Docker volumes with project databases especially visible.
+
+## Secrets and Auth
+
+These remain manual in phase 1:
+
+- Tailscale login
+- GitHub/GitLab CLI auth
+- remote Git SSH key passphrase
+- Codex/OpenAI auth
+- company credentials
+- project `.env` files
+
+Do not commit raw secrets. Add `sops-nix` later only when a service needs a
+secret during `nixos-rebuild` or systemd startup.
+
+## Backups
+
+Protected by Git/remotes:
+
+- dotfiles and NixOS config
+- committed branches
+- pushed company/personal repos
+
+Not protected automatically:
+
+- uncommitted WIP
+- untracked files
+- local `.env` files
+- Docker volumes and local databases
+- remote SSH private keys
+- auth state
+- tmux resurrect state
+
+Practical phase 1 discipline:
+
+- push WIP branches often
+- take provider snapshots before risky system changes
+- keep credentials recoverable through a password manager or re-login
+- avoid keeping important long-lived data only in Docker volumes
+
+## Moving to a New Server
+
+1. Provision a new VPS.
+2. Update `nix/shared/vars.nix` if the disk name differs.
+3. Run the first-install runbook.
+4. Re-authenticate Tailscale, GitHub/GitLab, Codex, and company tools.
+5. Clone project repos under `~/work`.
+6. Restore only the data you intentionally backed up.

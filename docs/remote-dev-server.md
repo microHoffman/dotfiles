@@ -1,10 +1,11 @@
 # Remote Dev Server Plan and Runbook
 
-Status: planning document for the next implementation step.
+Status: implemented baseline. The flake and runbooks now exist in this repo;
+this document remains the architecture record and scope boundary.
 
 This document captures the decisions from the remote development workstation
-planning session. The next step is to implement this in the dotfiles repo as a
-NixOS flake with reusable modules and an install/runbook flow.
+planning session. The implementation lives under [`../nix`](../nix) as a NixOS
+flake with reusable modules and an install/runbook flow.
 
 ## Goal
 
@@ -157,7 +158,7 @@ Do not use Tailscale SSH in phase 1. The normal OpenSSH path is more compatible
 with VS Code Remote SSH, existing SSH habits, `scp`/`rsync`, Git, and standard
 Linux recovery/debugging.
 
-Public SSH is only for bootstrap. Once Tailscale SSH access through OpenSSH is
+Public SSH is only for bootstrap. Once normal OpenSSH access over Tailscale is
 confirmed, public SSH should be blocked.
 
 ### DNS and Public Services
@@ -253,13 +254,14 @@ User-facing layout:
 The `~/work` directory should be created declaratively. Do not manage cloned
 project repos declaratively in phase 1; clone them manually as needed.
 
-## Proposed Repo Structure
+## Implemented Repo Structure
 
-Create this structure in the dotfiles repo during implementation:
+The implemented structure is:
 
 ```text
 nix/
   flake.nix
+  flake.lock
   hosts/
     remote-dev/
       default.nix
@@ -274,6 +276,8 @@ nix/
       nix-ld.nix
       firewall.nix
       zram.nix
+      base.nix
+      workdirs.nix
     home/
       zsh.nix
       tmux.nix
@@ -283,8 +287,17 @@ nix/
       ssh-agent.nix
   shared/
     vars.nix
+scripts/
+  remote-dev/
+    check-config.sh
+    install-destroy-with-nixos-anywhere.sh
+    rebuild.sh
+    update-flake.sh
+    verify-remote.sh
 docs/
   remote-dev-server.md
+  remote-dev-first-install.md
+  remote-dev-maintenance.md
 ```
 
 The implementation should follow the common Nix pattern: host files compose
@@ -659,8 +672,8 @@ Do not forward the local SSH agent by default; the server has its own Git key.
 
 ## Initial Install Runbook
 
-This is the expected high-level flow. Exact commands may change during
-implementation.
+Use [`remote-dev-first-install.md`](remote-dev-first-install.md) for exact
+commands. The high-level flow is:
 
 ### 1. Order Server
 
@@ -702,6 +715,11 @@ This path is destructive when `disko` partitions/formats disks.
 
 Never use this command for regular updates on a live system.
 
+The repo helper script wraps this command and refuses to run with
+`allowPublicSsh = false` unless `REMOTE_DEV_ALLOW_NO_PUBLIC_SSH=yes` is set.
+That guard prevents reinstalling a fresh host that has not joined Tailscale yet
+and cannot accept the first bootstrap login.
+
 ### 5. First login
 
 SSH over public IP while bootstrap public SSH is still allowed:
@@ -720,7 +738,7 @@ sudo tailscale up --ssh=false
 
 Confirm the machine appears in the tailnet.
 
-### 7. Confirm Tailscale SSH
+### 7. Confirm SSH over Tailscale
 
 From local machine:
 
@@ -751,6 +769,9 @@ Confirm:
 - public SSH is blocked
 
 ## Regular Rebuild Runbook
+
+Use [`remote-dev-maintenance.md`](remote-dev-maintenance.md) for the full
+maintenance runbook.
 
 Regular config changes should be applied on the server first.
 
@@ -787,7 +808,7 @@ works, inspect generations and switch back using standard NixOS tools.
 
 If the machine becomes unreachable:
 
-1. Try Tailscale SSH path.
+1. Try the SSH-over-Tailscale path.
 2. Use netcup console/rescue.
 3. Boot previous NixOS generation if possible.
 4. Use provider snapshot if needed.
@@ -872,7 +893,7 @@ After implementation/install, verify:
 - Codex installs/logs in manually
 - `sudo nixos-rebuild switch --flake ./nix#remote-dev` works from `~/dotfiles`
 
-## Open Variables for Implementation
+## Open Variables for Installation
 
 These are intentionally not decided in this document:
 
@@ -885,7 +906,9 @@ These are intentionally not decided in this document:
 - whether to add `sops-nix` later
 - whether to add provider backups later
 
-## Suggested Next Implementation Order
+## Implementation Status Checklist
+
+Completed in this repo:
 
 1. Add `nix/flake.nix` with stable nixpkgs, Home Manager, and disko.
 2. Add shared vars for `microhoffman`, home directory, and work directory.
@@ -894,16 +917,41 @@ These are intentionally not decided in this document:
 5. Add system modules for users, SSH/firewall, Tailscale, Docker, nix-ld, zram.
 6. Add Home Manager modules for zsh, tmux, git, Neovim, dev tools, ssh-agent.
 7. Add `allowPublicSsh` bootstrap switch.
-8. Add exact install/rebuild/update commands to this runbook.
-9. Test flake evaluation locally if possible.
-10. Install on the server with `nixos-anywhere`.
-11. Join Tailscale manually.
-12. Block public SSH and validate final state.
+8. Add exact install/rebuild/update commands to runbook docs and scripts.
+9. Test flake evaluation locally.
 
-## Implementation Notes for Next Agent
+Remaining manual install steps:
 
-The first implementation should create Nix files and scripts/docs only. It
-should not need a real server IP until the install step.
+1. Add the real SSH public key and confirm the target disk.
+2. Install on the server with `nixos-anywhere`.
+3. Join Tailscale manually.
+4. Block public SSH and validate final state.
+
+## Research References
+
+Primary references used for the implementation:
+
+- NixOS manual, especially the firewall behavior where OpenSSH can open port 22
+  automatically unless the module is configured otherwise:
+  <https://nixos.org/manual/nixos/stable/index.html#sec-firewall>
+- nixos-anywhere install workflow:
+  <https://github.com/nix-community/nixos-anywhere/blob/main/docs/howtos/no-os.md>
+- disko btrfs subvolume examples:
+  <https://github.com/nix-community/disko/blob/master/example/btrfs-subvolumes.nix>
+- NixOS Tailscale notes:
+  <https://wiki.nixos.org/wiki/Tailscale>
+- Tailscale firewall mode docs:
+  <https://tailscale.com/docs/features/firewall-mode>
+- netcup media/install docs noting that current images use UEFI boot and BIOS
+  installs require explicitly disabling UEFI:
+  <https://www.netcup.com/en/helpcenter/documentation/server/media>
+- Home Manager module options for tmux, zsh, direnv, Git, SSH, and Neovim:
+  <https://github.com/nix-community/home-manager/tree/master/modules/programs>
+
+## Implementation Notes
+
+The first implementation creates Nix files and scripts/docs only. It should not
+need a real server IP until the install step.
 
 Important constraints:
 
@@ -923,7 +971,7 @@ scripts are added, name them clearly and make destructive commands explicit.
 
 ## Suggested Skills for Future Sessions
 
-Useful skills for the implementation session:
+Useful skills for future install/debug sessions:
 
 - `find-docs`: for current NixOS, Home Manager, disko, nixos-anywhere, and
   netcup-specific documentation.

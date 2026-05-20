@@ -1,0 +1,39 @@
+#!/usr/bin/env bash
+set -u
+
+failures=0
+
+check() {
+  label="$1"
+  shift
+  if "$@" >/dev/null 2>&1; then
+    printf 'ok   %s\n' "${label}"
+  else
+    printf 'fail %s\n' "${label}"
+    failures=$((failures + 1))
+  fi
+}
+
+check "nixos-rebuild is available" command -v nixos-rebuild
+check "home directory exists" test -d "${HOME}"
+check "work directory exists" test -d "${HOME}/work"
+check "tmux is available" command -v tmux
+check "docker daemon responds" docker info
+check "docker compose is available" docker compose version
+check "tailscale is available" command -v tailscale
+check "tailscale has a status" tailscale status
+check "direnv is available" command -v direnv
+check "node is available" command -v node
+check "bun is available" command -v bun
+check "uv is available" command -v uv
+check "rustup is available" command -v rustup
+check "mise is available" command -v mise
+check "psql is available" command -v psql
+check "mysql client is available" command -v mysql
+check "redis-cli is available" command -v redis-cli
+check "sqlite3 is available" command -v sqlite3
+
+if [ "${failures}" -ne 0 ]; then
+  printf '\n%s checks failed.\n' "${failures}" >&2
+  exit 1
+fi
