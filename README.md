@@ -7,6 +7,8 @@ published skills with `npx skills add`.
 
 | Skill | Repository | Installer |
 | --- | --- | --- |
+| `create-pull-request` | https://github.com/microHoffman/agent-skills | `setup/agent-skills/install-create-pull-request.sh` |
+| `github-issues` | https://github.com/microHoffman/agent-skills | `setup/agent-skills/install-github-issues.sh` |
 | `gitlab-create-mr` | https://github.com/microHoffman/agent-skills | `setup/agent-skills/install-gitlab-create-mr.sh` |
 
 ## Useful guides
