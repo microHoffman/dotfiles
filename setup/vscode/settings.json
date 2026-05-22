@@ -1,0 +1,34 @@
+{
+  "dim.defaultFlags": "gm",
+  "dim.defaultOpacityTier": "min",
+  "dim.valueForMinTier": 0.18,
+  "dim.valueForMidTier": 0.3,
+  "dim.valueForMaxTier": 0.45,
+  "[php]": {
+    "dim.rules": [
+      {
+        "pattern": "^[^\\n]*(?:\\$this->[A-Za-z_][A-Za-z0-9_]*Logger|\\$this->logger|\\$this->getLogger\\(\\)|\\$[A-Za-z_][A-Za-z0-9_]*Logger|\\$logger|Logger|Log)\\s*(?:->|\\?->|::)\\s*(?:debug|info|notice|warning|warn|error|critical|alert|emergency|log)\\s*\\([\\s\\S]*?\\)\\s*;",
+        "flags": "gm",
+        "opacity": "min"
+      }
+    ]
+  },
+  "[typescript]": {
+    "dim.rules": [
+      {
+        "pattern": "^[^\\n]*\\b(?:console|logger|Logger|log|[A-Za-z_$][\\w$]*Logger|this\\.logger|this\\.log)\\??\\.\\s*(?:log|debug|info|warn|warning|error|trace|fatal|verbose|silly)\\s*\\([\\s\\S]*?\\)\\s*;",
+        "flags": "gm",
+        "opacity": "min"
+      }
+    ]
+  },
+  "[typescriptreact]": {
+    "dim.rules": [
+      {
+        "pattern": "^[^\\n]*\\b(?:console|logger|Logger|log|[A-Za-z_$][\\w$]*Logger|this\\.logger|this\\.log)\\??\\.\\s*(?:log|debug|info|warn|warning|error|trace|fatal|verbose|silly)\\s*\\([\\s\\S]*?\\)\\s*;",
+        "flags": "gm",
+        "opacity": "min"
+      }
+    ]
+  }
+}

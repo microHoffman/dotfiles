@@ -1,3 +1,13 @@
+## Setup approach
+
+Portable developer setup lives under `setup/` when it can reasonably work across
+machines, including local Fedora workstations and Nix remote hosts. Prefer this
+for editor settings, CLI bootstrap scripts, and tool-specific configuration that
+is not inherently tied to NixOS.
+
+Use the Nix flake for the remote-dev host, system services, and NixOS/Home
+Manager state where declarative Nix is the right portability boundary.
+
 ## Agent skills
 
 This dotfiles repo installs personal agent skills by reference. The skill source
@@ -12,6 +22,15 @@ published skills with `npx skills add`.
 | `gitlab-create-mr` | https://github.com/microHoffman/agent-skills | `setup/agent-skills/install-gitlab-create-mr.sh` |
 
 ## Useful guides
+
+### VS Code setup
+
+Portable VS Code extension and settings setup lives in
+[`setup/vscode`](setup/vscode). Run:
+
+```bash
+setup/vscode/install.sh
+```
 
 ### remote dev server
 

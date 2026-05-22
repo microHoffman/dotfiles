@@ -8,7 +8,17 @@ The Nix flake lives in `nix/flake.nix`, with shared inputs in
 `nix/hosts/remote-dev/`. Reusable NixOS modules live in `nix/modules/nixos/`,
 and Home Manager modules live in `nix/modules/home/`. Operational scripts are in
 `scripts/remote-dev/`; long-form runbooks and architecture notes are in `docs/`.
-Agent-skill bootstrap scripts live under `setup/agent-skills/`.
+Cross-platform setup scripts and tool settings live under `setup/`, for example
+`setup/agent-skills/` and `setup/vscode/`.
+
+## Setup Portability
+
+Prefer platform-agnostic setup when a tool or editor configuration should work
+across local and remote machines, such as Fedora workstations and Nix remote
+hosts. Keep those files under `setup/<tool>/` with explicit install scripts,
+settings fragments, and README notes. Use Nix/Home Manager for NixOS-specific
+system behavior, services, packages, or remote-dev host state, not as the
+default place for portable editor and developer-tool preferences.
 
 ## Build, Test, and Development Commands
 

@@ -1,0 +1,2 @@
+# VS Code extension IDs installed by setup/vscode/install.sh.
+ufukty.dim
