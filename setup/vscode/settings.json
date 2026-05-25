@@ -7,6 +7,11 @@
   "[php]": {
     "dim.rules": [
       {
+        "pattern": "^\\s*\\$this->io->\\s*[A-Za-z_][A-Za-z0-9_]*\\s*\\([\\s\\S]*?\\)\\s*;",
+        "flags": "gm",
+        "opacity": "min"
+      },
+      {
         "pattern": "^[^\\n]*(?:\\$this->[A-Za-z_][A-Za-z0-9_]*Logger|\\$this->logger|\\$this->getLogger\\(\\)|\\$[A-Za-z_][A-Za-z0-9_]*Logger|\\$logger|Logger|Log)\\s*(?:->|\\?->|::)\\s*(?:debug|info|notice|warning|warn|error|critical|alert|emergency|log)\\s*\\([\\s\\S]*?\\)\\s*;",
         "flags": "gm",
         "opacity": "min"

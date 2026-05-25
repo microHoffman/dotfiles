@@ -14,8 +14,8 @@ The installer:
 - creates a timestamped backup before changing an existing settings file
 
 The logging dimming rules use the `ufukty.dim` extension. They dim common
-PHP/Symfony logger calls and TypeScript logger/console calls, including
-multi-line calls that end with `);`.
+PHP/Symfony logger calls, Symfony console IO output calls, and TypeScript
+logger/console calls, including multi-line calls that end with `);`.
 
 Environment overrides:
 
