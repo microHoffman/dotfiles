@@ -32,6 +32,15 @@ Portable VS Code extension and settings setup lives in
 setup/vscode/install.sh
 ```
 
+### Codex mise setup
+
+Portable Codex shell setup for mise-managed `node`, `npm`, and `npx` lives in
+[`setup/codex-mise`](setup/codex-mise). Run:
+
+```bash
+setup/codex-mise/install.sh
+```
+
 ### remote dev server
 
 Planning and architecture notes for the NixOS remote workstation live in
