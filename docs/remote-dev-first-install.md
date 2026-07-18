@@ -231,8 +231,9 @@ gh auth login
 glab auth login
 ```
 
-Install/login Codex and other agent tools manually until the exact agent
-toolchain is stable enough to pin in Nix.
+Continue with [`remote-codex-aoe.md`](remote-codex-aoe.md) to install and log in
+to Codex and AoE. Its Tailscale operator, Funnel, lingering, and dashboard flags
+are separate approval gates and remain disabled during initial installation.
 
 ## 10. Validate
 

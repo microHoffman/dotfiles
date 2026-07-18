@@ -64,6 +64,7 @@
     };
     users.${vars.username} = {
       imports = [
+        ../../modules/home/aoe-dashboard.nix
         ../../modules/home/dev-tools.nix
         ../../modules/home/git.nix
         ../../modules/home/neovim.nix

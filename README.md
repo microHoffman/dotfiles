@@ -41,6 +41,13 @@ Portable Codex shell setup for mise-managed `node`, `npm`, and `npx` lives in
 setup/codex-mise/install.sh
 ```
 
+### Remote Codex and Agent of Empires
+
+Portable, non-secret setup files live in
+[`setup/aoe-remote`](setup/aoe-remote). The complete approval-gated NixOS,
+Tailscale Funnel, systemd, Android, workflow, and recovery guide is
+[`docs/remote-codex-aoe.md`](docs/remote-codex-aoe.md).
+
 ### remote dev server
 
 Planning and architecture notes for the NixOS remote workstation live in
@@ -50,6 +57,7 @@ Operational runbooks:
 
 - [`docs/remote-dev-first-install.md`](docs/remote-dev-first-install.md)
 - [`docs/remote-dev-maintenance.md`](docs/remote-dev-maintenance.md)
+- [`docs/remote-codex-aoe.md`](docs/remote-codex-aoe.md)
 - [`docs/remote-dev-implementation-handoff.md`](docs/remote-dev-implementation-handoff.md)
 
 The flake entrypoint is [`nix/flake.nix`](nix/flake.nix) and the host target is

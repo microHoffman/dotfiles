@@ -2,6 +2,7 @@
 set -u
 
 failures=0
+script_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 
 check() {
   label="$1"
@@ -32,6 +33,13 @@ check "psql is available" command -v psql
 check "mysql client is available" command -v mysql
 check "redis-cli is available" command -v redis-cli
 check "sqlite3 is available" command -v sqlite3
+
+if [ "${REMOTE_DEV_VERIFY_AOE:-0}" = "1" ]; then
+  printf '\nAoE/Codex verification:\n'
+  if ! "${script_dir}/verify-aoe.sh"; then
+    failures=$((failures + 1))
+  fi
+fi
 
 if [ "${failures}" -ne 0 ]; then
   printf '\n%s checks failed.\n' "${failures}" >&2

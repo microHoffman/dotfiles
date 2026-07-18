@@ -16,6 +16,14 @@
   # Bootstrap mode. Set to false after normal OpenSSH over Tailscale works.
   allowPublicSsh = true;
 
+  # These stay false until their separate runtime approval gates are complete.
+  # Enabling the dashboard requires both operator access and user lingering.
+  aoeDashboard = {
+    enable = false;
+    enableTailscaleOperator = false;
+    enableUserLinger = false;
+  };
+
   # Add your local client public SSH key before installation.
   # Example: "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAA... laptop"
   authorizedSshKeys = [ ];

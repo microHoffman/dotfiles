@@ -9,7 +9,10 @@ On the server:
 
 ```bash
 cd ~/dotfiles
-git pull
+git pull --ff-only
+nix flake check ./nix --show-trace
+nix build ./nix#nixosConfigurations.remote-dev.config.system.build.toplevel --no-link
+sudo nixos-rebuild dry-activate --flake ./nix#remote-dev
 sudo nixos-rebuild switch --flake ./nix#remote-dev
 ```
 
@@ -121,3 +124,9 @@ Practical phase 1 discipline:
 4. Re-authenticate Tailscale, GitHub/GitLab, Codex, and company tools.
 5. Clone project repos under `~/work`.
 6. Restore only the data you intentionally backed up.
+
+## Codex and AoE dashboard
+
+The persistent terminal-agent, worktree, Tailscale Funnel, Android, update, and
+recovery procedures are documented in
+[`remote-codex-aoe.md`](remote-codex-aoe.md).
