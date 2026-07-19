@@ -29,7 +29,9 @@
 
   # Add your local client public SSH key before installation.
   # Example: "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAA... laptop"
-  authorizedSshKeys = [ ];
+  authorizedSshKeys = [
+    "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIF1RNTrzQEnZxEHoF9Rx+ZGdV1HvwwaiIcT+0Tkducki skozak@protonmail.com"
+  ];
 
   git = {
     # Fill these in once you know the exact identity you want on the server.

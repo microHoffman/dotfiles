@@ -26,5 +26,7 @@
     };
   };
 
+  services.qemuGuest.enable = true;
+
   networking.useDHCP = lib.mkDefault true;
 }

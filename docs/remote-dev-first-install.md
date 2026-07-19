@@ -106,6 +106,15 @@ REMOTE_DEV_CONFIRM_DESTROY=yes \
   scripts/remote-dev/install-destroy-with-nixos-anywhere.sh root@<public-ip>
 ```
 
+For a slow source-machine connection, build the system closure on the VPS so
+the large binary-cache downloads use the VPS connection:
+
+```bash
+REMOTE_DEV_BUILD_ON=remote \
+REMOTE_DEV_CONFIRM_DESTROY=yes \
+  scripts/remote-dev/install-destroy-with-nixos-anywhere.sh root@<public-ip>
+```
+
 If you are using the temporary Nix store workaround, pass it to the install
 script too. The helper applies it to the outer `nix run` and exports
 `NIX_REMOTE` for nested Nix calls:
@@ -121,6 +130,7 @@ The script runs:
 ```bash
 nix run github:nix-community/nixos-anywhere -- \
   --flake path:<repo>/nix#remote-dev \
+  --build-on <auto|local|remote> \
   --target-host root@<public-ip>
 ```
 
