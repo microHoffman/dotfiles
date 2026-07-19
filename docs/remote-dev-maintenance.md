@@ -22,6 +22,8 @@ Or:
 ~/dotfiles/scripts/remote-dev/rebuild.sh
 ```
 
+The script runs the same check, build, dry-activation, and switch sequence.
+
 ## Update Flake Inputs
 
 Updates are manual in phase 1.
@@ -30,7 +32,7 @@ Updates are manual in phase 1.
 cd ~/dotfiles
 scripts/remote-dev/update-flake.sh
 git diff nix/flake.lock
-sudo nixos-rebuild switch --flake ./nix#remote-dev
+scripts/remote-dev/rebuild.sh
 scripts/remote-dev/verify-remote.sh
 git status --short
 git commit -am "Update remote dev flake inputs"

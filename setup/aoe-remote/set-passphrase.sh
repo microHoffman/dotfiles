@@ -10,7 +10,7 @@ if [ ! -t 0 ]; then
 fi
 
 if [ -e "$environment_file" ]; then
-  printf 'A dashboard passphrase already exists. Rotating it signs out connected devices.\n'
+  printf 'A dashboard passphrase already exists. Rotation signs out connected devices after the dashboard restarts.\n'
   read -r -p 'Type ROTATE to continue: ' rotate_confirmation
   if [ "$rotate_confirmation" != "ROTATE" ]; then
     printf 'Passphrase unchanged.\n'
@@ -52,4 +52,35 @@ trap - EXIT
 unset passphrase confirmation
 
 printf 'Stored the dashboard passphrase in %s with mode 0600.\n' "$environment_file"
-printf 'Restart aoe-dashboard only after its Tailscale Funnel approval gate is complete.\n'
+
+if command -v systemctl >/dev/null 2>&1 \
+  && systemctl --user is-active --quiet aoe-dashboard.service; then
+  printf 'Restarting the active dashboard so the new passphrase takes effect immediately.\n'
+  if ! systemctl --user restart aoe-dashboard.service; then
+    printf 'set-passphrase: systemd could not restart the dashboard\n' >&2
+    printf 'Disable public access with: tailscale funnel --https=443 off\n' >&2
+    exit 1
+  fi
+
+  dashboard_ready=false
+  for _ in $(seq 1 60); do
+    if systemctl --user is-active --quiet aoe-dashboard.service \
+      && command -v aoe >/dev/null 2>&1 \
+      && aoe serve --status >/dev/null 2>&1; then
+      dashboard_ready=true
+      break
+    fi
+    sleep 1
+  done
+
+  if [ "$dashboard_ready" != true ]; then
+    systemctl --user stop aoe-dashboard.service || true
+    printf 'set-passphrase: the dashboard did not become healthy and was stopped\n' >&2
+    printf 'Disable the remaining Funnel mapping with: tailscale funnel --https=443 off\n' >&2
+    exit 1
+  fi
+
+  printf 'Dashboard restarted; the old passphrase and existing dashboard logins are invalid.\n'
+else
+  printf 'The dashboard is not active; the passphrase will apply on its next start.\n'
+fi

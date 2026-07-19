@@ -3,7 +3,6 @@ set -u
 
 failures=0
 environment_file="${AOE_DASHBOARD_ENV_FILE:-${XDG_CONFIG_HOME:-${HOME}/.config}/aoe-dashboard/serve.env}"
-boot_marker="${XDG_STATE_HOME:-${HOME}/.local/state}/aoe-dashboard/last-dashboard-boot-id"
 aoe_state_dir="${XDG_CONFIG_HOME:-${HOME}/.config}/agent-of-empires"
 
 check() {
@@ -38,6 +37,13 @@ check_loopback_8080() {
   '
 }
 
+check_ssh_agent_environment() {
+  expected="SSH_AUTH_SOCK=/run/user/$(id -u)/ssh-agent"
+  systemctl --user show -p Environment --value aoe-dashboard.service \
+    | tr ' ' '\n' \
+    | grep -Fxq "$expected"
+}
+
 check "tailscale status" tailscale status
 check "Tailscale Funnel status" tailscale funnel status
 check "tmux version" tmux -V
@@ -52,12 +58,11 @@ check "AoE listens only on IPv4 loopback port 8080" check_loopback_8080
 check "cloudflared is absent from PATH" bash -c '! command -v cloudflared >/dev/null 2>&1'
 check "dashboard environment file exists" test -f "$environment_file"
 check_value "dashboard environment file mode is 0600" "600" stat -c %a "$environment_file"
-check "dashboard boot-recovery marker exists" test -f "$boot_marker"
-check_value "dashboard boot-recovery marker mode is 0600" "600" stat -c %a "$boot_marker"
 check "AoE runtime passphrase file exists" test -f "$aoe_state_dir/serve.passphrase"
 check_value "AoE runtime passphrase file mode is 0600" "600" stat -c %a "$aoe_state_dir/serve.passphrase"
 check_value "dashboard service uses Restart=on-failure" "on-failure" systemctl --user show -p Restart --value aoe-dashboard.service
 check_value "dashboard stop preserves tmux processes" "process" systemctl --user show -p KillMode --value aoe-dashboard.service
+check "dashboard agents use the Home Manager SSH agent" check_ssh_agent_environment
 check_value "user lingering is enabled" "yes" loginctl show-user "$USER" -p Linger --value
 
 if [ "$failures" -ne 0 ]; then

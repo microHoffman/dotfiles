@@ -80,7 +80,7 @@ notify_on_wake_fire = true
 [worktree]
 auto_cleanup = true
 bare_repo_path_template = "./{branch}"
-delete_branch_on_cleanup = false
+delete_branch_on_cleanup = true
 enabled = true
 init_submodules = true
 path_template = "../{repo-name}-worktrees/{branch}"

@@ -31,12 +31,10 @@ rejects `enable = true` unless both prerequisite gates are also enabled.
 - Codex uses `workspace-write`, `on-request`, and automatic approval review.
   Auto-review is not YOLO: the sandbox remains active and risky actions can be
   denied.
-- Only the dashboard starts automatically. Old Codex agents are resumed
-  deliberately after reboot.
-- Current AoE releases otherwise recover missing tmux sessions when the web
-  daemon starts. The service launcher prevents that on the first dashboard
-  start of each host boot by archiving only sessions without a live tmux pane.
-  Archive is reversible and preserves worktrees, branches, and transcripts.
+- AoE owns session lifecycle and recovery. After a reboot it automatically
+  recovers eligible terminal sessions with stored conversation IDs. It leaves
+  archived, snoozed, trashed, explicitly stopped, structured, and non-resumable
+  sessions alone. There is no separate repository-maintained recovery layer.
 
 ## Phase 1: audit the actual VPS
 
@@ -142,8 +140,10 @@ The NixOS rebuild runs the equivalent of:
 sudo tailscale set --operator=microhoffman
 ```
 
-Effect: `microhoffman` can manage this node's Tailscale daemon. Undo:
-`sudo tailscale set --operator=root`. It does not interrupt SSH.
+Effect: `microhoffman` can manage this node's Tailscale daemon. This is expected
+for the single-user host. To undo it durably, first stop the dashboard, set both
+`aoeDashboard.enable = false` and `enableTailscaleOperator = false`, and rebuild.
+Then run `sudo tailscale set --operator=root`. This does not interrupt SSH.
 
 ## Phase 5: Funnel exposure approval
 
@@ -153,8 +153,10 @@ Before enabling Funnel, display the resolved values and obtain confirmation:
 - Destination: only `127.0.0.1:8080` on the VPS.
 - Public content: the AoE login page. A first login requires both the URL token
   and passphrase.
-- Risk: an authenticated dashboard provides terminal input and therefore remote
-  code execution as the host user.
+- Risk: an authenticated dashboard provides terminal input as `microhoffman`.
+  Because this personal account has passwordless sudo and Docker access, treat
+  dashboard compromise as full root compromise. This setup intentionally keeps
+  one account for simplicity instead of maintaining a separate dashboard user.
 - Metadata: the machine and tailnet DNS names appear in the public hostname.
 
 Enable the tailnet-wide Funnel feature in the Tailscale admin console. Merge a
@@ -177,11 +179,21 @@ tailscale status
 tailscale funnel status
 ```
 
-To disable public transport immediately:
+To disable public transport immediately, stop the dashboard and remove its
+current mapping:
 
 ```bash
+systemctl --user stop aoe-dashboard
 tailscale funnel --https=443 off
+tailscale funnel status
 ```
+
+This remains off until the dashboard service starts again. For durable shutdown,
+also set `aoeDashboard.enable = false`, rebuild, and confirm the service is no
+longer enabled before the next reboot. The check
+`systemctl --user is-enabled aoe-dashboard` should report `disabled` or
+`not-found`. The operator and linger gates may remain enabled if you expect to
+turn the dashboard back on later.
 
 Run `tailscale funnel status` before considering `tailscale funnel reset`;
 `reset` removes every Funnel mapping on the node.
@@ -196,7 +208,10 @@ setup/aoe-remote/set-passphrase.sh
 ```
 
 This creates `~/.config/aoe-dashboard/serve.env` in an owner-only directory with
-mode `0600`.
+mode `0600`. When the dashboard is already active, the script restarts it and
+waits for `aoe serve --status` so the new passphrase and device invalidation
+take effect immediately. If health verification fails, it stops the dashboard
+and prints the Funnel-off command. It never starts an inactive dashboard.
 
 Lingering lets the user systemd manager start at boot and continue after logout.
 After its separate approval, set:
@@ -211,8 +226,9 @@ This is the declarative equivalent of:
 sudo loginctl enable-linger microhoffman
 ```
 
-Undo: `sudo loginctl disable-linger microhoffman`. It does not affect SSH and
-does not start old agents.
+To undo lingering durably, first stop the dashboard, set both
+`aoeDashboard.enable = false` and `enableUserLinger = false`, and rebuild. Then
+run `sudo loginctl disable-linger microhoffman`. It does not affect SSH.
 
 After operator, Funnel, passphrase, and linger verification, set:
 
@@ -277,13 +293,15 @@ tmux list-sessions
 After review, tests, commit, push, and merge:
 
 ```bash
-aoe session archive fix-refresh-token
-aoe remove fix-refresh-token --delete-worktree --delete-branch
+aoe remove fix-refresh-token
 ```
 
-AoE archive preserves the managed worktree. The second command performs the
-supported cleanup and moves session metadata to recoverable trash. Avoid
-`--force` and `--purge` during normal operation.
+AoE stops the session and moves its metadata and managed worktree to recoverable
+trash. The baseline keeps trash for 30 days, then AoE automatically purges the
+worktree and merged branch. Restore during that window with
+`aoe session restore fix-refresh-token`. Avoid `--force` and `--purge` during
+normal operation; use an explicit purge only when immediate irreversible cleanup
+is worth losing the recovery window.
 
 ## Dashboard and phone operations
 
@@ -313,7 +331,8 @@ The Funnel PWA does not require the Tailscale Android app. Full SSH does:
 4. Connect to `microhoffman@<tailscale-magicdns-name>`.
 
 If the phone is lost, remove it from the tailnet, remove its SSH public key and
-rebuild, revoke its AoE dashboard device, and rotate the AoE passphrase.
+rebuild, revoke its AoE dashboard device, and run `set-passphrase.sh` to rotate
+the passphrase and restart the active dashboard immediately.
 
 ## Three persistence layers
 
@@ -325,21 +344,19 @@ rebuild, revoke its AoE dashboard device, and rotate the AoE passphrase.
 - **Code persistence:** worktree files and branches persist on disk. Commits and
   remote pushes are the durable recovery boundary.
 
-After reboot, the dashboard returns through systemd and lingering, but old
-agents stay stopped. They appear archived because the boot guard uses AoE's
-supported, reversible archive state to suppress automatic startup recovery.
-Recover deliberately:
+After reboot, the dashboard returns through systemd and lingering. AoE
+automatically recovers only sessions it considers eligible; sessions you
+archived, snoozed, trashed, or explicitly stopped remain inactive. Inspect the
+result with:
 
 ```bash
 aoe list
 tmux list-sessions
 git -C <main-checkout> worktree list
 git -C <worktree> status
-aoe session unarchive <session>
-aoe session start <session>
 ```
 
-If AoE cannot resume it, enter the worktree and use:
+If an eligible session cannot be recovered, enter its worktree and use:
 
 ```bash
 codex resume
@@ -360,7 +377,8 @@ journalctl --user -u aoe-dashboard
 Stopping or restarting only the dashboard must leave existing tmux sessions
 alive. Funnel configuration persists in `tailscaled`; stopping AoE makes the
 public endpoint unavailable but does not remove the Funnel mapping. Use the
-explicit Funnel-off command for emergency shutdown.
+stop-plus-Funnel-off sequence above for emergency shutdown, and disable the
+declarative dashboard gate for durable shutdown.
 
 ## Updating tools
 
@@ -447,7 +465,6 @@ Machine-local and never committed:
 
 ```text
 ~/.config/aoe-dashboard/serve.env
-~/.local/state/aoe-dashboard/last-dashboard-boot-id
 ~/.codex/config.toml
 ~/.codex/auth.json
 ~/.config/agent-of-empires/config.toml

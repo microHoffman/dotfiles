@@ -55,7 +55,11 @@ setup/aoe-remote/set-passphrase.sh
 
 It writes `~/.config/aoe-dashboard/serve.env` with mode `0600` under an
 owner-only directory. The value is never passed as a command-line argument.
-Rotating it signs out connected dashboard devices.
+If the dashboard is active, the script restarts it and verifies the restart so
+rotation takes effect immediately and signs out connected dashboard devices. It
+does not start an inactive dashboard. If the restarted dashboard does not become
+healthy, the script stops it and prints the command that removes the remaining
+Funnel mapping.
 
 Do not create this file until the Tailscale Funnel exposure has been reviewed
 and approved. The Nix service remains disabled by default in

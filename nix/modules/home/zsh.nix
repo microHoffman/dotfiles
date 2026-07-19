@@ -35,7 +35,7 @@
       ".." = "cd ..";
       gs = "git status --short --branch";
       ll = "eza -lah --git";
-      rebuild-remote-dev = "sudo nixos-rebuild switch --flake ${vars.dotfilesDirectory}/nix#remote-dev";
+      rebuild-remote-dev = "${vars.dotfilesDirectory}/scripts/remote-dev/rebuild.sh";
     };
     initContent = ''
       setopt AUTO_PUSHD
