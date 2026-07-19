@@ -46,7 +46,7 @@ Runs the install preflight. It intentionally fails until
 
 ## Coding Style & Naming Conventions
 
-Use `nixfmt-rfc-style` for Nix files via the flake formatter. Keep modules small
+Use `nixfmt` for Nix files via the flake formatter. Keep modules small
 and purpose-specific: one concern per file, named after the service or tool it
 configures, for example `ssh.nix`, `tailscale.nix`, or `tmux.nix`. Shell scripts
 should use Bash, `set -euo pipefail`, clear usage text, and explicit destructive

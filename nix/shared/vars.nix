@@ -5,9 +5,12 @@
   dotfilesDirectory = "/home/microhoffman/dotfiles";
   workDirectory = "/home/microhoffman/work";
 
-  timeZone = "Asia/Bangkok";
-  systemStateVersion = "25.11";
-  homeStateVersion = "25.11";
+  timeZone = "Europe/Prague";
+
+  # Initial-install compatibility baselines. Do not bump these during routine
+  # upgrades after this host has been deployed.
+  systemStateVersion = "26.05";
+  homeStateVersion = "26.05";
 
   # netcup Root Servers usually expose the first virtio disk as /dev/vda.
   # Confirm with `lsblk` in rescue mode before running nixos-anywhere.

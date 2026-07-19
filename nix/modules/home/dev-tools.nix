@@ -31,7 +31,7 @@
     mariadb.client
     mise
     ncdu
-    nodejs_22
+    nodejs_24
     openssl
     pkg-config
     postgresql

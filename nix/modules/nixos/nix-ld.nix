@@ -24,18 +24,18 @@
       stdenv.cc.cc
       systemd
       util-linux
-      xorg.libX11
-      xorg.libXcomposite
-      xorg.libXcursor
-      xorg.libXdamage
-      xorg.libXext
-      xorg.libXfixes
-      xorg.libXi
-      xorg.libXrandr
-      xorg.libXrender
-      xorg.libXtst
-      xorg.libxcb
-      xorg.libxkbfile
+      libx11
+      libxcomposite
+      libxcursor
+      libxdamage
+      libxext
+      libxfixes
+      libxi
+      libxrandr
+      libxrender
+      libxtst
+      libxcb
+      libxkbfile
       xz
       zlib
       zstd

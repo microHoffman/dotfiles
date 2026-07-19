@@ -40,6 +40,10 @@ git commit -am "Update remote dev flake inputs"
 
 Before large updates, take a provider snapshot.
 
+After the first server installation, do not routinely change
+`systemStateVersion` or `homeStateVersion` in `nix/shared/vars.nix`. They are
+compatibility baselines, not the installed NixOS and Home Manager release.
+
 ## Roll Back a Bad Switch
 
 If SSH still works:
