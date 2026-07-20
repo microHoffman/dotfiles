@@ -19,8 +19,8 @@
   # Normal OpenSSH is reachable only over Tailscale after bootstrap.
   allowPublicSsh = false;
 
-  # These stay false until their separate runtime approval gates are complete.
-  # Enabling the dashboard requires both operator access and user lingering.
+  # These gates were enabled only after their separate runtime approvals.
+  # The dashboard requires both operator access and user lingering.
   aoeDashboard = {
     enable = true;
     enableTailscaleOperator = true;

@@ -5,8 +5,8 @@ This runbook adds a persistent personal Codex environment to the NixOS
 terminal-based Codex processes in tmux and publishes only its loopback web
 dashboard through Tailscale Funnel.
 
-The configuration is intentionally staged. These values default to `false` in
-`nix/shared/vars.nix`:
+The configuration is intentionally staged. Start a new host with these values
+set to `false` in `nix/shared/vars.nix`:
 
 ```nix
 aoeDashboard = {
@@ -16,8 +16,9 @@ aoeDashboard = {
 };
 ```
 
-Do not enable them until their approval steps below are complete. Nix evaluation
-rejects `enable = true` unless both prerequisite gates are also enabled.
+Do not enable them until their approval steps below are complete. The finalized
+personal host sets all three to `true`; Nix evaluation rejects `enable = true`
+unless both prerequisite gates are also enabled.
 
 ## Security model
 
@@ -159,9 +160,16 @@ Before enabling Funnel, display the resolved values and obtain confirmation:
   one account for simplicity instead of maintaining a separate dashboard user.
 - Metadata: the machine and tailnet DNS names appear in the public hostname.
 
-Enable the tailnet-wide Funnel feature in the Tailscale admin console. Merge a
-least-privilege node attribute into the existing policy, targeting only the
-server's assigned Tailscale IP:
+Read the server's Tailscale IP, enable Funnel in the
+[Funnel admin page](https://login.tailscale.com/f/funnel), then open the
+[policy editor](https://login.tailscale.com/admin/acls/file):
+
+```bash
+tailscale ip -4
+```
+
+Merge a least-privilege node attribute into the existing policy, targeting only
+that server IP:
 
 ```json
 "nodeAttrs": [
@@ -172,7 +180,10 @@ server's assigned Tailscale IP:
 ]
 ```
 
-Never replace the rest of the policy. Verify:
+Never replace the rest of the policy. If Funnel setup already added a rule for
+`autogroup:member`, replace only that rule's target with the server IP. Do not
+append the narrower rule while retaining `autogroup:member`, because the broad
+grant would still apply to every personal tailnet device. Verify:
 
 ```bash
 tailscale status
@@ -320,8 +331,12 @@ On Android:
 1. Scan the live QR with the camera.
 2. Enter the AoE passphrase from the password manager.
 3. In Chrome, choose **Install app** or **Add to Home screen**.
-4. Review or revoke devices under **Settings > Web Dashboard > Connected
+4. Open the installed PWA, then under **Settings > Notifications** enable
+   notifications, grant Android permission, and send a test notification.
+5. Review or revoke devices under **Settings > Web Dashboard > Connected
    Devices**.
+6. Optionally disconnect Tailscale on Android and reload the PWA once to verify
+   that Funnel works over the public internet, then reconnect Tailscale.
 
 The Funnel PWA does not require the Tailscale Android app. Full SSH does:
 
@@ -359,10 +374,28 @@ git -C <worktree> status
 If an eligible session cannot be recovered, enter its worktree and use:
 
 ```bash
-codex resume
+codex resume --last
 ```
 
 tmux-resurrect remains manual and does not automatically restore Codex agents.
+
+For a controlled reboot test, first commit or preserve all work, explicitly stop
+any agent that must remain inactive, and keep the provider console available.
+Display the impact and obtain approval before running:
+
+```bash
+sudo systemctl reboot
+```
+
+SSH and all live processes disconnect. After the host returns, reconnect over
+Tailscale, run both verification scripts below, open the existing PWA URL, and
+confirm explicitly stopped AoE sessions remain inactive. The SSH agent starts
+empty after a reboot, so restore remote Git access interactively:
+
+```bash
+ssh-add ~/.ssh/id_ed25519_remote_dev
+ssh -T git@github.com
+```
 
 ## Service operations
 
@@ -449,6 +482,17 @@ Then create a disposable Git repository and AoE worktree. Verify:
 7. Funnel can be disabled immediately.
 8. Logout persistence works. Reboot testing requires separate approval.
 
+After every acceptance check passes, permanently remove only the known
+disposable session when immediate cleanup is intended. Show the exact target and
+obtain confirmation because this bypasses the normal 30-day trash recovery:
+
+```bash
+aoe remove <test-session> --purge --delete-worktree --delete-branch --force
+```
+
+Verify the AoE row, tmux session, worktree, and test branch are absent before
+removing the disposable main repository by its exact path.
+
 ## Managed and local paths
 
 Repository-managed:
@@ -464,17 +508,28 @@ Repository-managed:
 Machine-local and never committed:
 
 ```text
+~/.config/systemd/user/aoe-dashboard.service
 ~/.config/aoe-dashboard/serve.env
 ~/.codex/config.toml
 ~/.codex/auth.json
 ~/.config/agent-of-empires/config.toml
+~/.config/agent-of-empires/login_sessions.toml
+~/.config/agent-of-empires/push.vapid.json
+~/.config/agent-of-empires/serve.url
+~/.config/agent-of-empires/serve.token
 ~/.config/agent-of-empires/serve.passphrase
-AoE session, login, URL-token, and tmux state
+~/.config/agent-of-empires/serve.saved_passphrase
+~/.config/agent-of-empires/serve.mode
+~/.config/agent-of-empires/serve.pid
+~/.config/agent-of-empires/profiles/
+AoE database, session, plugin, and tmux state
 ```
 
-AoE creates `serve.passphrase` with owner-only permissions while the dashboard
-is running and removes it during a graceful shutdown. It is an application
-runtime copy used by AoE's local TUI/restart flow; never commit or print it.
+The systemd unit is a Home Manager-generated symlink. Dashboard credentials,
+URL tokens, login sessions, and push keys are sensitive machine-local state;
+never commit or print them. AoE creates `serve.passphrase` with owner-only
+permissions while the dashboard is running and removes it during a graceful
+shutdown.
 
 ## Current official references
 
@@ -482,6 +537,7 @@ runtime copy used by AoE's local TUI/restart flow; never commit or print it.
 - [AoE Tailscale setup](https://www.agent-of-empires.com/guides/tailscale/)
 - [AoE Git worktrees](https://www.agent-of-empires.com/guides/worktrees/)
 - [AoE web dashboard](https://www.agent-of-empires.com/guides/web-dashboard/)
+- [AoE push notifications](https://www.agent-of-empires.com/docs/push-notifications/)
 - [Codex CLI developer commands](https://learn.chatgpt.com/docs/developer-commands?surface=cli)
-- [Tailscale Funnel](https://tailscale.com/kb/1223/funnel/)
-- [Tailscale CLI operator setting](https://tailscale.com/kb/1080/cli/#operator)
+- [Tailscale Funnel](https://tailscale.com/docs/features/tailscale-funnel)
+- [Tailscale CLI operator setting](https://tailscale.com/docs/reference/troubleshooting/linux/linux-operator-permission)
