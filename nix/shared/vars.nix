@@ -23,8 +23,8 @@
   # Enabling the dashboard requires both operator access and user lingering.
   aoeDashboard = {
     enable = false;
-    enableTailscaleOperator = false;
-    enableUserLinger = false;
+    enableTailscaleOperator = true;
+    enableUserLinger = true;
   };
 
   # Add your local client public SSH key before installation.
