@@ -34,8 +34,7 @@
   ];
 
   git = {
-    # Fill these in once you know the exact identity you want on the server.
-    userName = null;
-    userEmail = null;
+    userName = "microHoffman";
+    userEmail = "skozak@protonmail.com";
   };
 }

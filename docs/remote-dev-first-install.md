@@ -153,11 +153,19 @@ the first clone:
 
 ```bash
 ssh-keygen -t ed25519 -f ~/.ssh/id_ed25519_remote_dev -C "remote-dev"
+ssh-add ~/.ssh/id_ed25519_remote_dev
 cat ~/.ssh/id_ed25519_remote_dev.pub
 ```
 
-Add that public key to GitHub/GitLab from a local browser. Then clone or pull
-this dotfiles repo into the expected path:
+Add that public key to GitHub/GitLab from a local browser. Test GitHub SSH
+authentication before cloning:
+
+```bash
+ssh -T git@github.com
+```
+
+GitHub should identify the expected account and report that authentication
+succeeded. Then clone or pull this dotfiles repo into the expected path:
 
 ```bash
 git clone <dotfiles-repo-url> ~/dotfiles
@@ -228,7 +236,9 @@ code --remote ssh-remote+remote-dev /home/microhoffman/work
 
 ## 9. Manual Auth
 
-Load the remote-only Git key into the server ssh-agent:
+The remote-only Git key was loaded into the server ssh-agent during bootstrap.
+The agent does not retain unlocked keys across a reboot, so load it again after
+each reboot before Git operations:
 
 ```bash
 ssh-add ~/.ssh/id_ed25519_remote_dev
