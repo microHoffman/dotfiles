@@ -93,7 +93,7 @@ to the user.
 | Public SSH | Temporary bootstrap only, then blocked |
 | Disk filesystem | btrfs |
 | Disk encryption | No full-disk encryption in phase 1 |
-| Repo location | `~/dotfiles` for config, `~/work` for project repos |
+| Config repo location | `~/dotfiles` |
 | Docker | Docker only, no Podman initially |
 | Home Manager | Integrated into NixOS flake |
 | Updates | Manual only, locked flake inputs |
@@ -181,10 +181,7 @@ No public web services are needed initially.
 The final chosen layout is home-centered:
 
 - `~/dotfiles` for the canonical dotfiles/NixOS config repo
-- `~/work` for project repos
-
-A top-level `/work` was considered and rejected because it did not match the
-user's mental model. Keep project repos inside `/home/microhoffman/work`.
+- user-chosen locations for project repos
 
 ### Tooling Boundary
 
@@ -245,14 +242,7 @@ User-facing layout:
 
 ```text
 /home/microhoffman/dotfiles
-/home/microhoffman/work
-/home/microhoffman/work/companies
-/home/microhoffman/work/personal
-/home/microhoffman/work/scratch
 ```
-
-The `~/work` directory should be created declaratively. Do not manage cloned
-project repos declaratively in phase 1; clone them manually as needed.
 
 ## Implemented Repo Structure
 
@@ -277,7 +267,7 @@ nix/
       firewall.nix
       zram.nix
       base.nix
-      workdirs.nix
+      directories.nix
     home/
       zsh.nix
       tmux.nix
@@ -321,7 +311,6 @@ Centralize only basic shared values, such as:
 ```text
 username = "microhoffman";
 homeDirectory = "/home/microhoffman";
-workDirectory = "/home/microhoffman/work";
 ```
 
 Avoid building a large custom option framework in phase 1.
@@ -665,7 +654,7 @@ Example:
 
 ```bash
 ssh remote-dev
-code --remote ssh-remote+remote-dev /home/microhoffman/work
+code --remote ssh-remote+remote-dev /home/microhoffman/dotfiles
 ```
 
 Do not forward the local SSH agent by default; the server has its own Git key.
@@ -825,7 +814,6 @@ Useful places to inspect:
 ```bash
 ncdu /nix
 ncdu /var/lib/docker
-ncdu ~/work
 ncdu ~
 ```
 
@@ -880,7 +868,7 @@ After implementation/install, verify:
 - public SSH is blocked after final rebuild
 - root SSH is disabled
 - password SSH login is disabled
-- VS Code Remote SSH opens `~/work`
+- VS Code Remote SSH opens `~/dotfiles`
 - `tmux` starts and persists sessions
 - `tmux-resurrect` manual save/restore works
 - Docker works
@@ -911,7 +899,7 @@ These are intentionally not decided in this document:
 Completed in this repo:
 
 1. Add `nix/flake.nix` with stable nixpkgs, Home Manager, and disko.
-2. Add shared vars for `microhoffman`, home directory, and work directory.
+2. Add shared vars for `microhoffman` and the home directory.
 3. Add `hosts/remote-dev/default.nix`.
 4. Add `hosts/remote-dev/disko.nix` with btrfs subvolumes.
 5. Add system modules for users, SSH/firewall, Tailscale, Docker, nix-ld, zram.
@@ -958,7 +946,7 @@ Important constraints:
 - Keep the flake target named `remote-dev`.
 - Keep the system architecture `x86_64-linux`.
 - Keep Home Manager integrated into the NixOS flake.
-- Keep `~/dotfiles` and `~/work` as the expected remote paths.
+- Keep `~/dotfiles` as the expected dotfiles path.
 - Keep public SSH as an explicit bootstrap/final switch.
 - Keep Tailscale login manual.
 - Keep raw secrets out of Git.

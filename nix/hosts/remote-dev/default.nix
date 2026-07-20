@@ -10,7 +10,7 @@
     ./disko.nix
     ../../modules/nixos/base.nix
     ../../modules/nixos/users.nix
-    ../../modules/nixos/workdirs.nix
+    ../../modules/nixos/directories.nix
     ../../modules/nixos/firewall.nix
     ../../modules/nixos/ssh.nix
     ../../modules/nixos/tailscale.nix

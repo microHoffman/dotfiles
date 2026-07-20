@@ -70,7 +70,6 @@ sudo btrfs filesystem usage /
 docker system df
 ncdu /nix
 ncdu /var/lib/docker
-ncdu ~/work
 ```
 
 Manual cleanup only in phase 1:
@@ -128,7 +127,7 @@ Practical phase 1 discipline:
 2. Update `nix/shared/vars.nix` if the disk name differs.
 3. Run the first-install runbook.
 4. Re-authenticate Tailscale, GitHub/GitLab, Codex, and company tools.
-5. Clone project repos under `~/work`.
+5. Clone project repos into your preferred locations.
 6. Restore only the data you intentionally backed up.
 
 ## Codex and AoE dashboard

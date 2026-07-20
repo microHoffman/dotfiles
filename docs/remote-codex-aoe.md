@@ -278,7 +278,7 @@ daemon or show its QR screen.
 Create one outcome-oriented worktree session per concurrent task:
 
 ```bash
-aoe add ~/work/personal/example \
+aoe add /path/to/example \
   --title fix-refresh-token \
   --worktree fix-refresh-token \
   --new-branch \

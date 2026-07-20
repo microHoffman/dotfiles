@@ -231,7 +231,7 @@ Then use:
 
 ```bash
 ssh remote-dev
-code --remote ssh-remote+remote-dev /home/microhoffman/work
+code --remote ssh-remote+remote-dev /home/microhoffman/dotfiles
 ```
 
 ## 9. Manual Auth
@@ -267,7 +267,7 @@ Also verify manually:
 
 - `tmux` sessions survive SSH disconnect/reconnect
 - `tmux-resurrect` manual save/restore works
-- VS Code Remote SSH opens `/home/microhoffman/work`
+- VS Code Remote SSH opens `/home/microhoffman/dotfiles`
 - Docker Compose works in a real project repo
 - `nix develop` + `direnv` works in a sample Nix project
 - Git clone/push works through the remote-only SSH key

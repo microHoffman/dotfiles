@@ -3,7 +3,6 @@
   fullName = "microhoffman";
   homeDirectory = "/home/microhoffman";
   dotfilesDirectory = "/home/microhoffman/dotfiles";
-  workDirectory = "/home/microhoffman/work";
 
   timeZone = "Europe/Prague";
 

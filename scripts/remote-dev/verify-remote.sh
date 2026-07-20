@@ -17,7 +17,6 @@ check() {
 
 check "nixos-rebuild is available" command -v nixos-rebuild
 check "home directory exists" test -d "${HOME}"
-check "work directory exists" test -d "${HOME}/work"
 check "tmux is available" command -v tmux
 check "docker daemon responds" docker info
 check "docker compose is available" docker compose version

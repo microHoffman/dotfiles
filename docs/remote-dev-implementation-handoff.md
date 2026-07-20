@@ -18,7 +18,7 @@ up installation or further refinement.
 - `nix/hosts/remote-dev` contains the host, generic VPS hardware, and disko
   layout.
 - `nix/modules/nixos` contains system modules for users, SSH/firewall,
-  Tailscale, Docker, nix-ld, zram, base server settings, and work directories.
+  Tailscale, Docker, nix-ld, zram, base server settings, and directories.
 - `nix/modules/home` contains Home Manager modules for zsh, tmux, Git, Neovim,
   ssh-agent, direnv/nix-direnv, and dev tools.
 - `scripts/remote-dev` contains validation, destructive install, rebuild,
@@ -36,7 +36,7 @@ The setup is intended to support:
 - NixOS install via `nixos-anywhere`
 - btrfs disk layout via `disko`
 - user `microhoffman`
-- home-centered layout: `~/dotfiles` and `~/work`
+- canonical dotfiles checkout at `~/dotfiles`
 - Tailscale enabled, manual login
 - normal OpenSSH over Tailscale
 - public SSH allowed only during bootstrap
