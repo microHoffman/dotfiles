@@ -29,7 +29,6 @@
     jq
     lsof
     mariadb.client
-    mise
     ncdu
     nodejs_24
     openssl

@@ -67,6 +67,7 @@
         ../../modules/home/aoe-dashboard.nix
         ../../modules/home/dev-tools.nix
         ../../modules/home/git.nix
+        ../../modules/home/mise.nix
         ../../modules/home/neovim.nix
         ../../modules/home/ssh-agent.nix
         ../../modules/home/tmux.nix
