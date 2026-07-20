@@ -16,8 +16,8 @@
   # Confirm with `lsblk` in rescue mode before running nixos-anywhere.
   installDisk = "/dev/vda";
 
-  # Bootstrap mode. Set to false after normal OpenSSH over Tailscale works.
-  allowPublicSsh = true;
+  # Normal OpenSSH is reachable only over Tailscale after bootstrap.
+  allowPublicSsh = false;
 
   # These stay false until their separate runtime approval gates are complete.
   # Enabling the dashboard requires both operator access and user lingering.
