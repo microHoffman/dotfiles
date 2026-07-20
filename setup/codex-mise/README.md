@@ -16,6 +16,9 @@ Run:
 setup/codex-mise/install.sh
 ```
 
+The NixOS `remote-dev` host configures the same shim behavior declaratively
+through Home Manager, so do not run this installer there.
+
 The installer updates `~/.zshenv` idempotently. To target a different file for
 testing, set `ZSHENV_PATH`:
 
