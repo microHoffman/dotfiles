@@ -22,7 +22,7 @@
   # These stay false until their separate runtime approval gates are complete.
   # Enabling the dashboard requires both operator access and user lingering.
   aoeDashboard = {
-    enable = false;
+    enable = true;
     enableTailscaleOperator = true;
     enableUserLinger = true;
   };
