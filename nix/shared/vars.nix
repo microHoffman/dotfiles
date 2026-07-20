@@ -31,6 +31,7 @@
   # Example: "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAA... laptop"
   authorizedSshKeys = [
     "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIF1RNTrzQEnZxEHoF9Rx+ZGdV1HvwwaiIcT+0Tkducki skozak@protonmail.com"
+    "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIGb9Eijgi5eiL4UFrCqoUQ0QLpf4YbxuKlt3A0pSWEGs android-termux-remote-dev"
   ];
 
   git = {
