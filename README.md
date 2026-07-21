@@ -24,22 +24,34 @@ published skills with `npx skills add`.
 
 ## Useful guides
 
-### ActiveCollab CLI
+### ActiveCollab agent setup
 
-This Nix-managed remote-dev host pins the CLI through Home Manager in
-[`nix/modules/home/mise.nix`](nix/modules/home/mise.nix). On an unmanaged
-machine, use the portable mise-based installer in
-[`setup/activecollab-cli`](setup/activecollab-cli):
-
-```bash
-setup/activecollab-cli/install.sh
-```
-
-Install the companion agent skill separately with:
+Install the ActiveCollab CLI and companion agent skill together on Fedora or
+NixOS with:
 
 ```bash
 setup/agent-skills/install-activecollab.sh
 ```
+
+The installer uses mise to select the latest stable CLI release in
+`~/.config/mise/conf.d/activecollab-cli.toml`, verifies that it is version 0.3.0
+or newer, and installs the skill globally for all supported agents. Rerun the
+same command to update both. To install a specific compatible CLI release, set
+`ACTIVECOLLAB_CLI_VERSION` for that invocation.
+
+The installer does not handle credentials. Log in afterward with the complete
+self-hosted API-v1 URL:
+
+```bash
+activecollab auth login --url https://activecollab.example.com/api/v1
+activecollab auth status
+activecollab info
+```
+
+The CLI stores the URL, account, and token in a protected per-user credentials
+file. For CI or ephemeral sessions, use protected `ACTIVECOLLAB_URL` and
+`ACTIVECOLLAB_TOKEN` environment variables instead. Never commit credentials or
+pass them in command arguments.
 
 ### VS Code setup
 
