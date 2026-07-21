@@ -17,11 +17,29 @@ published skills with `npx skills add`.
 
 | Skill | Repository | Installer |
 | --- | --- | --- |
+| `activecollab` | https://github.com/microHoffman/agent-skills | `setup/agent-skills/install-activecollab.sh` |
 | `create-pull-request` | https://github.com/microHoffman/agent-skills | `setup/agent-skills/install-create-pull-request.sh` |
 | `github-issues` | https://github.com/microHoffman/agent-skills | `setup/agent-skills/install-github-issues.sh` |
 | `gitlab-create-mr` | https://github.com/microHoffman/agent-skills | `setup/agent-skills/install-gitlab-create-mr.sh` |
 
 ## Useful guides
+
+### ActiveCollab CLI
+
+This Nix-managed remote-dev host pins the CLI through Home Manager in
+[`nix/modules/home/mise.nix`](nix/modules/home/mise.nix). On an unmanaged
+machine, use the portable mise-based installer in
+[`setup/activecollab-cli`](setup/activecollab-cli):
+
+```bash
+setup/activecollab-cli/install.sh
+```
+
+Install the companion agent skill separately with:
+
+```bash
+setup/agent-skills/install-activecollab.sh
+```
 
 ### VS Code setup
 
