@@ -64,6 +64,7 @@
     };
     users.${vars.username} = {
       imports = [
+        ../../modules/home/agent-config.nix
         ../../modules/home/aoe-dashboard.nix
         ../../modules/home/dev-tools.nix
         ../../modules/home/git.nix

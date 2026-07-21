@@ -11,6 +11,7 @@ goals = true
 
 [mcp_servers.sentry]
 url = "https://mcp.sentry.dev/mcp"
+enabled = false
 
 [mcp_servers.openaiDeveloperDocs]
 url = "https://developers.openai.com/mcp"

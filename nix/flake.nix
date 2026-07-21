@@ -26,6 +26,7 @@
       system = "x86_64-linux";
       vars = import ./shared/vars.nix;
       pkgs = nixpkgs.legacyPackages.${system};
+      agentConfigReconciler = pkgs.callPackage ./packages/agent-config-reconciler.nix { };
     in
     {
       nixosConfigurations.remote-dev = nixpkgs.lib.nixosSystem {
@@ -39,6 +40,21 @@
           ./hosts/remote-dev
         ];
       };
+
+      checks.${system}.agent-config-reconciler =
+        pkgs.runCommand "agent-config-reconciler-check"
+          {
+            nativeBuildInputs = [
+              agentConfigReconciler
+              pkgs.coreutils
+              pkgs.python3
+              pkgs.util-linux
+            ];
+          }
+          ''
+            bash ${../setup/aoe-remote/test-reconcile-config.sh} ${pkgs.lib.getExe agentConfigReconciler}
+            touch "$out"
+          '';
 
       formatter.${system} = pkgs.nixfmt;
     };

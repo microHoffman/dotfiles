@@ -36,6 +36,15 @@ config does not exist. It never overwrites an existing config. Machine-generated
 Codex trust entries, hook hashes, tokens, session state, and AoE UI state do not
 belong in this repository.
 
+On the NixOS `remote-dev` host, Home Manager also treats every value in
+`codex-config.toml` and `aoe-config.toml` as an authoritative overlay. Every
+NixOS or Home Manager activation deep-merges those values into the live
+application configs. Tables are merged recursively, repository scalars and
+arrays win, and keys that exist only in the live files are preserved. Removing
+a key from a repository template does not delete the live key; intentional
+removals require a separate migration. The merge uses application locks and
+atomic owner-only writes.
+
 The Codex baseline uses `workspace-write`, interactive `on-request` approvals,
 and `approvals_reviewer = "auto_review"`. Auto-review changes who reviews an
 eligible escalation; it does not disable the sandbox or grant full host access.
@@ -43,6 +52,14 @@ eligible escalation; it does not disable the sandbox or grant full host access.
 The AoE baseline keeps terminal/tmux sessions, makes Codex the default tool,
 enables the normal worktree workflow, preserves explicit conversation resume,
 and keeps YOLO disabled. ACP/structured sessions are intentionally omitted.
+
+Sentry MCP is disabled for the default `codex` tool. Choose `codex-sentry` in
+AoE's agent picker to start Codex with Sentry enabled for that session only.
+Authentication remains an explicit user action:
+
+```bash
+codex -c mcp_servers.sentry.enabled=true mcp login sentry
+```
 
 ## Store or rotate the dashboard passphrase
 

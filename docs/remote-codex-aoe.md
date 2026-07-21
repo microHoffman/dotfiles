@@ -101,7 +101,12 @@ setup/aoe-remote/install-config.sh
 ```
 
 Existing files are never overwritten. Compare and merge manually if the target
-already has configuration.
+already has configuration on a non-Nix machine. On the NixOS `remote-dev` host,
+Home Manager reconciles every repository-owned value from the two templates
+into the live files during activation. Repository tables are deep-merged,
+repository scalars and arrays win, and application-generated keys not present
+in the templates are preserved. Template key removal is intentionally not a
+live-key deletion mechanism; use a separately reviewed migration for removals.
 
 Authenticate Codex interactively on the headless server:
 
@@ -109,6 +114,12 @@ Authenticate Codex interactively on the headless server:
 codex login --device-auth
 codex login status
 ```
+
+The default Codex configuration keeps Sentry MCP disabled. When Sentry access
+is needed, authenticate it explicitly with
+`codex -c mcp_servers.sentry.enabled=true mcp login sentry`, then choose the
+`codex-sentry` agent in AoE. The normal `codex` agent does not initialize the
+Sentry server.
 
 ## Phase 3: OpenSSH over Tailscale
 
@@ -524,6 +535,10 @@ Machine-local and never committed:
 ~/.config/agent-of-empires/profiles/
 AoE database, session, plugin, and tmux state
 ```
+
+The two live application config files remain machine-local and writable. Home
+Manager only reconciles values declared in the repository templates; Codex and
+AoE retain ownership of all other values and runtime state.
 
 The systemd unit is a Home Manager-generated symlink. Dashboard credentials,
 URL tokens, login sessions, and push keys are sensitive machine-local state;

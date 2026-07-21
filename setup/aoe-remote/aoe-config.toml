@@ -48,6 +48,12 @@ trash_retention_days = 30
 unread_indicator = true
 yolo_mode_default = false
 
+[session.custom_agents]
+codex-sentry = "codex --config mcp_servers.sentry.enabled=true"
+
+[session.agent_detect_as]
+codex-sentry = "codex"
+
 [sound]
 enabled = false
 mode = "random"

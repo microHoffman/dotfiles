@@ -4,6 +4,8 @@ set -u
 failures=0
 environment_file="${AOE_DASHBOARD_ENV_FILE:-${XDG_CONFIG_HOME:-${HOME}/.config}/aoe-dashboard/serve.env}"
 aoe_state_dir="${XDG_CONFIG_HOME:-${HOME}/.config}/agent-of-empires"
+aoe_config="${AOE_CONFIG_FILE:-${aoe_state_dir}/config.toml}"
+codex_config="${CODEX_CONFIG_FILE:-${HOME}/.codex/config.toml}"
 
 check() {
   label="$1"
@@ -44,6 +46,37 @@ check_ssh_agent_environment() {
     | grep -Fxq "$expected"
 }
 
+check_toml_value() {
+  config_file="$1"
+  key_path="$2"
+  value_type="$3"
+  expected="$4"
+
+  python3 - "$config_file" "$key_path" "$value_type" "$expected" <<'PY'
+import pathlib
+import sys
+import tomllib
+
+config_path = pathlib.Path(sys.argv[1])
+keys = sys.argv[2].split(".")
+value_type = sys.argv[3]
+expected_text = sys.argv[4]
+
+value = tomllib.loads(config_path.read_text())
+for key in keys:
+    value = value[key]
+
+if value_type == "bool":
+    expected = expected_text == "true"
+elif value_type == "string":
+    expected = expected_text
+else:
+    raise ValueError(f"unsupported expected value type: {value_type}")
+
+raise SystemExit(0 if value == expected else 1)
+PY
+}
+
 check "tailscale status" tailscale status
 check "Tailscale Funnel status" tailscale funnel status
 check "tmux version" tmux -V
@@ -51,6 +84,15 @@ check "Git version" git --version
 check "Codex version" codex --version
 check "Codex login" codex login status
 check "AoE version" aoe --version
+check "Codex Sentry MCP is disabled by default" check_toml_value \
+  "$codex_config" "mcp_servers.sentry.enabled" bool false
+check "AoE uses tmux for new session attachment" check_toml_value \
+  "$aoe_config" "session.new_session_attach_mode" string tmux
+check "AoE exposes the codex-sentry agent" check_toml_value \
+  "$aoe_config" "session.custom_agents.codex-sentry" string \
+  "codex --config mcp_servers.sentry.enabled=true"
+check "AoE detects codex-sentry as Codex" check_toml_value \
+  "$aoe_config" "session.agent_detect_as.codex-sentry" string codex
 check "AoE dashboard service is active" systemctl --user is-active aoe-dashboard.service
 check "AoE serve daemon reports healthy" aoe serve --status
 check "AoE dashboard URL exists (output suppressed)" aoe url
