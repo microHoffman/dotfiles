@@ -31,4 +31,4 @@ if "${nix_cmd[@]}" eval --impure --raw --expr "let vars = import ${vars_file}; i
   printf 'check-config: allowPublicSsh is true; this is expected only for bootstrap.\n'
 fi
 
-"${nix_cmd[@]}" flake check "path:${repo_root}/nix"
+"${nix_cmd[@]}" flake check "${repo_root}/nix"
