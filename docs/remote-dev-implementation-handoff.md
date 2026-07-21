@@ -68,7 +68,8 @@ name have been reviewed.
 - Do not commit raw secrets.
 - Do not add `sops-nix` until there is a concrete rebuild-time secret.
 - Do not add public DNS/services, GUI, Podman, automatic updates, or global
-  browser testing stacks in phase 1.
+  project E2E test runners in phase 1. The user-level `agent-browser` setup is
+  maintained separately under `setup/agent-skills/`.
 
 ## Open Inputs Needed Later
 
@@ -112,8 +113,8 @@ Current phase-1 validation flow:
 
 ## Suggested Skills
 
-- `find-docs` for NixOS, Home Manager, disko, nixos-anywhere, tmux Home Manager
-  options, Tailscale, and netcup docs.
-- `diagnose` if installation, SSH, Tailscale, Docker, VS Code Remote SSH, or
+- GitHits or official vendor documentation for NixOS, Home Manager, disko,
+  nixos-anywhere, tmux Home Manager options, Tailscale, and netcup docs.
+- `diagnosing-bugs` if installation, SSH, Tailscale, Docker, VS Code Remote SSH, or
   `nixos-rebuild` fails.
 - `handoff` if implementation cannot be finished in one session.

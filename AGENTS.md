@@ -75,9 +75,3 @@ Do not commit private keys, API tokens, Tailscale auth keys, company
 credentials, or project `.env` files. Public SSH keys are acceptable but reveal
 identity metadata. Keep `allowPublicSsh = true` only for bootstrap, then switch
 it to `false` after Tailscale SSH access is verified.
-
-## Agent-Specific Instructions
-
-Use `npx ctx7@latest library <name> "<question>"` followed by
-`npx ctx7@latest docs <libraryId> "<question>"` when answering questions about
-library, framework, SDK, API, CLI, or cloud-service behavior.

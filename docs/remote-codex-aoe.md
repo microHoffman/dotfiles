@@ -115,11 +115,24 @@ codex login --device-auth
 codex login status
 ```
 
-The default Codex configuration keeps Sentry MCP disabled. When Sentry access
-is needed, authenticate it explicitly with
-`codex -c mcp_servers.sentry.enabled=true mcp login sentry`, then choose the
-`codex-sentry` agent in AoE. The normal `codex` agent does not initialize the
-Sentry server.
+The default Codex configuration enables Sentry's read-oriented `inspect`
+toolset. Authenticate it explicitly with:
+
+```bash
+codex mcp login sentry
+```
+
+The separately installed `sentry-fix-issues` skill is explicit-only and is for
+tasks that should diagnose and change code, not routine issue lookup.
+
+Install global skills, repository-scoped skills, and GitHits using the commands
+in [`setup/aoe-remote/README.md`](../setup/aoe-remote/README.md). The `seo` and
+`own` AoE profiles select their matching Codex profiles:
+
+```bash
+aoe -p seo
+aoe -p own
+```
 
 ## Phase 3: OpenSSH over Tailscale
 
@@ -532,7 +545,7 @@ Machine-local and never committed:
 ~/.config/agent-of-empires/serve.saved_passphrase
 ~/.config/agent-of-empires/serve.mode
 ~/.config/agent-of-empires/serve.pid
-~/.config/agent-of-empires/profiles/
+~/.config/agent-of-empires/profiles/*/sessions.json
 AoE database, session, plugin, and tmux state
 ```
 

@@ -53,13 +53,56 @@ The AoE baseline keeps terminal/tmux sessions, makes Codex the default tool,
 enables the normal worktree workflow, preserves explicit conversation resume,
 and keeps YOLO disabled. ACP/structured sessions are intentionally omitted.
 
-Sentry MCP is disabled for the default `codex` tool. Choose `codex-sentry` in
-AoE's agent picker to start Codex with Sentry enabled for that session only.
-Authentication remains an explicit user action:
+The default Codex configuration enables Sentry's read-oriented `inspect`
+toolset. Authentication remains an explicit user action:
 
 ```bash
-codex -c mcp_servers.sentry.enabled=true mcp login sentry
+codex mcp login sentry
 ```
+
+The `sentry-fix-issues` skill is installed separately and marked explicit-only.
+Reading a Sentry issue therefore does not trigger the fix workflow; invoke the
+skill when the task is to diagnose and change code for a Sentry issue.
+
+Two optional profiles are installed:
+
+- `codex --profile seo` enables the local Codex SEO suite, except integrations
+  that require separately configured DataForSEO, Firecrawl, Google, or Gemini
+  credentials.
+- `codex --profile own` enables the hosted `own-context` MCP server.
+
+AoE profiles named `seo` and `own` launch Codex with those profile flags. Use
+`aoe -p seo` or `aoe -p own`; each AoE profile has its own session workspace.
+
+## Install skills and documentation access
+
+Install the complete global skill/tool set:
+
+```bash
+setup/agent-skills/install-all-global.sh
+```
+
+Or install global and known repository-scoped skills together:
+
+```bash
+setup/agent-skills/install-all.sh \
+  --depoto-client ~/tomatom/client \
+  --own-mcp ~/own/own_mcp \
+  --pwn-protocol ~/pwn/pwn_protocol
+```
+
+Repository arguments are optional and explicit. No Trail of Bits skill is
+installed in Proof of Presence. Each skill also has an individual installer in
+`setup/agent-skills/` for selective installs and updates.
+
+Initialize GitHits after GitHub CLI authentication:
+
+```bash
+setup/githits/init.sh
+```
+
+GitHits owns its interactive authentication and generated machine-local
+integration. Dotfiles does not duplicate its MCP or guidance block.
 
 ## Store or rotate the dashboard passphrase
 

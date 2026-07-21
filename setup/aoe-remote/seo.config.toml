@@ -1,59 +1,26 @@
-model = "gpt-5.6-sol"
-model_reasoning_effort = "xhigh"
-plan_mode_reasoning_effort = "xhigh"
-service_tier = "default"
-sandbox_mode = "workspace-write"
-approval_policy = "on-request"
-approvals_reviewer = "auto_review"
-
-[features]
-goals = true
-
-[mcp_servers.sentry]
-url = "https://mcp.sentry.dev/mcp?skills=inspect"
-enabled = true
-
-[mcp_servers.openaiDeveloperDocs]
-url = "https://developers.openai.com/mcp"
-
-[mcp_servers.own-context]
-url = "https://mcp.own.casa/mcp"
-enabled = false
-scopes = [
-  "openid",
-  "offline_access",
-  "context.read",
-  "context.validate",
-  "grants.read",
-  "grants.write",
-]
-
-[mcp_servers.own-context.oauth]
-client_id = "C6yemhZP2rhCPMZIuNTHKnd2hu6cyMXB"
-
 [[skills.config]]
 path = "/home/microhoffman/.codex/skills/seo/SKILL.md"
-enabled = false
+enabled = true
 
 [[skills.config]]
 path = "/home/microhoffman/.codex/skills/seo-audit/SKILL.md"
-enabled = false
+enabled = true
 
 [[skills.config]]
 path = "/home/microhoffman/.codex/skills/seo-backlinks/SKILL.md"
-enabled = false
+enabled = true
 
 [[skills.config]]
 path = "/home/microhoffman/.codex/skills/seo-cluster/SKILL.md"
-enabled = false
+enabled = true
 
 [[skills.config]]
 path = "/home/microhoffman/.codex/skills/seo-competitor-pages/SKILL.md"
-enabled = false
+enabled = true
 
 [[skills.config]]
 path = "/home/microhoffman/.codex/skills/seo-content/SKILL.md"
-enabled = false
+enabled = true
 
 [[skills.config]]
 path = "/home/microhoffman/.codex/skills/seo-dataforseo/SKILL.md"
@@ -61,11 +28,11 @@ enabled = false
 
 [[skills.config]]
 path = "/home/microhoffman/.codex/skills/seo-drift/SKILL.md"
-enabled = false
+enabled = true
 
 [[skills.config]]
 path = "/home/microhoffman/.codex/skills/seo-ecommerce/SKILL.md"
-enabled = false
+enabled = true
 
 [[skills.config]]
 path = "/home/microhoffman/.codex/skills/seo-firecrawl/SKILL.md"
@@ -73,11 +40,11 @@ enabled = false
 
 [[skills.config]]
 path = "/home/microhoffman/.codex/skills/seo-flow/SKILL.md"
-enabled = false
+enabled = true
 
 [[skills.config]]
 path = "/home/microhoffman/.codex/skills/seo-geo/SKILL.md"
-enabled = false
+enabled = true
 
 [[skills.config]]
 path = "/home/microhoffman/.codex/skills/seo-google/SKILL.md"
@@ -85,7 +52,7 @@ enabled = false
 
 [[skills.config]]
 path = "/home/microhoffman/.codex/skills/seo-hreflang/SKILL.md"
-enabled = false
+enabled = true
 
 [[skills.config]]
 path = "/home/microhoffman/.codex/skills/seo-image-gen/SKILL.md"
@@ -93,54 +60,54 @@ enabled = false
 
 [[skills.config]]
 path = "/home/microhoffman/.codex/skills/seo-images/SKILL.md"
-enabled = false
+enabled = true
 
 [[skills.config]]
 path = "/home/microhoffman/.codex/skills/seo-local/SKILL.md"
-enabled = false
+enabled = true
 
 [[skills.config]]
 path = "/home/microhoffman/.codex/skills/seo-maps/SKILL.md"
-enabled = false
+enabled = true
 
 [[skills.config]]
 path = "/home/microhoffman/.codex/skills/seo-page/SKILL.md"
-enabled = false
+enabled = true
 
 [[skills.config]]
 path = "/home/microhoffman/.codex/skills/seo-performance/SKILL.md"
-enabled = false
+enabled = true
 
 [[skills.config]]
 path = "/home/microhoffman/.codex/skills/seo-plan/SKILL.md"
-enabled = false
+enabled = true
 
 [[skills.config]]
 path = "/home/microhoffman/.codex/skills/seo-programmatic/SKILL.md"
-enabled = false
+enabled = true
 
 [[skills.config]]
 path = "/home/microhoffman/.codex/skills/seo-schema/SKILL.md"
-enabled = false
+enabled = true
 
 [[skills.config]]
 path = "/home/microhoffman/.codex/skills/seo-sitemap/SKILL.md"
-enabled = false
+enabled = true
 
 [[skills.config]]
 path = "/home/microhoffman/.codex/skills/seo-sxo/SKILL.md"
-enabled = false
+enabled = true
 
 [[skills.config]]
 path = "/home/microhoffman/.codex/skills/seo-technical/SKILL.md"
-enabled = false
+enabled = true
 
 [[skills.config]]
 path = "/home/microhoffman/.codex/skills/seo-visual/SKILL.md"
-enabled = false
+enabled = true
 
-# The official suite also nests optional MCP-backed extension skills below the
-# main seo skill. Keep those out of the base and OWN contexts as well.
+# These extension skills need external MCP services that are not part of the
+# default SEO profile.
 [[skills.config]]
 path = "/home/microhoffman/.codex/skills/seo/extensions/dataforseo/skills/seo-dataforseo/SKILL.md"
 enabled = false

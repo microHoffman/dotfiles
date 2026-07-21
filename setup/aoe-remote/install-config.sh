@@ -4,6 +4,8 @@ set -euo pipefail
 script_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 codex_config="${CODEX_CONFIG_FILE:-${HOME}/.codex/config.toml}"
 aoe_config="${AOE_CONFIG_FILE:-${XDG_CONFIG_HOME:-${HOME}/.config}/agent-of-empires/config.toml}"
+codex_home="$(dirname -- "$codex_config")"
+aoe_home="$(dirname -- "$aoe_config")"
 
 install_if_missing() {
   source_file="$1"
@@ -22,4 +24,8 @@ install_if_missing() {
 }
 
 install_if_missing "${script_dir}/codex-config.toml" "$codex_config" "Codex"
+install_if_missing "${script_dir}/seo.config.toml" "${codex_home}/seo.config.toml" "Codex SEO profile"
+install_if_missing "${script_dir}/own.config.toml" "${codex_home}/own.config.toml" "Codex OWN profile"
 install_if_missing "${script_dir}/aoe-config.toml" "$aoe_config" "AoE"
+install_if_missing "${script_dir}/profiles/seo/config.toml" "${aoe_home}/profiles/seo/config.toml" "AoE SEO profile"
+install_if_missing "${script_dir}/profiles/own/config.toml" "${aoe_home}/profiles/own/config.toml" "AoE OWN profile"

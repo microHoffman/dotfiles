@@ -6,6 +6,7 @@ environment_file="${AOE_DASHBOARD_ENV_FILE:-${XDG_CONFIG_HOME:-${HOME}/.config}/
 aoe_state_dir="${XDG_CONFIG_HOME:-${HOME}/.config}/agent-of-empires"
 aoe_config="${AOE_CONFIG_FILE:-${aoe_state_dir}/config.toml}"
 codex_config="${CODEX_CONFIG_FILE:-${HOME}/.codex/config.toml}"
+codex_home="$(dirname -- "$codex_config")"
 
 check() {
   label="$1"
@@ -84,15 +85,20 @@ check "Git version" git --version
 check "Codex version" codex --version
 check "Codex login" codex login status
 check "AoE version" aoe --version
-check "Codex Sentry MCP is disabled by default" check_toml_value \
-  "$codex_config" "mcp_servers.sentry.enabled" bool false
+check "Codex Sentry inspect MCP is enabled" check_toml_value \
+  "$codex_config" "mcp_servers.sentry.enabled" bool true
+check "Codex OWN MCP is disabled by default" check_toml_value \
+  "$codex_config" "mcp_servers.own-context.enabled" bool false
+check "Codex SEO profile exists" test -f "$codex_home/seo.config.toml"
+check "Codex OWN profile exists" test -f "$codex_home/own.config.toml"
 check "AoE uses tmux for new session attachment" check_toml_value \
   "$aoe_config" "session.new_session_attach_mode" string tmux
-check "AoE exposes the codex-sentry agent" check_toml_value \
-  "$aoe_config" "session.custom_agents.codex-sentry" string \
-  "codex --config mcp_servers.sentry.enabled=true"
-check "AoE detects codex-sentry as Codex" check_toml_value \
-  "$aoe_config" "session.agent_detect_as.codex-sentry" string codex
+check "AoE SEO profile selects Codex SEO" check_toml_value \
+  "$aoe_state_dir/profiles/seo/config.toml" \
+  "session.agent_command_override.codex" string "codex --profile seo"
+check "AoE OWN profile selects Codex OWN" check_toml_value \
+  "$aoe_state_dir/profiles/own/config.toml" \
+  "session.agent_command_override.codex" string "codex --profile own"
 check "AoE dashboard service is active" systemctl --user is-active aoe-dashboard.service
 check "AoE serve daemon reports healthy" aoe serve --status
 check "AoE dashboard URL exists (output suppressed)" aoe url

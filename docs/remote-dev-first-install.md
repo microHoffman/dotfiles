@@ -247,9 +247,26 @@ ssh-add ~/.ssh/id_ed25519_remote_dev
 Then authenticate tools manually:
 
 ```bash
-gh auth login
+gh auth login -h github.com
 glab auth login
 ```
+
+Install Codex/AoE configuration and the desired global skills, then initialize
+GitHits:
+
+```bash
+cd ~/dotfiles
+setup/aoe-remote/install-config.sh
+setup/agent-skills/install-all-global.sh
+setup/githits/init.sh
+```
+
+Repository-specific skills are installed only after those repositories are
+cloned. If they already exist, use `setup/agent-skills/install-all.sh` with
+their exact paths instead of `install-all-global.sh` above. If they are cloned
+later, use the corresponding individual repository installer so the global set
+is not needlessly reinstalled. The PWN Protocol installer is the only Trail of
+Bits target; do not run it in Proof of Presence.
 
 Continue with [`remote-codex-aoe.md`](remote-codex-aoe.md) to install and log in
 to Codex and AoE. Its Tailscale operator, Funnel, lingering, and dashboard flags

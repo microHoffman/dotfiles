@@ -50,7 +50,8 @@ Do not implement these yet:
 - Tailscale SSH
 - desktop or GUI stack
 - Podman
-- Playwright/Cypress/browser automation installed globally
+- Playwright or Cypress project test runners installed globally (`agent-browser`
+  remains a separate user-level automation tool)
 - automatic NixOS updates
 - automatic Docker/Nix cleanup jobs
 - full file-level backups
@@ -961,9 +962,9 @@ scripts are added, name them clearly and make destructive commands explicit.
 
 Useful skills for future install/debug sessions:
 
-- `find-docs`: for current NixOS, Home Manager, disko, nixos-anywhere, and
-  netcup-specific documentation.
-- `diagnose`: if NixOS install, SSH, Tailscale, VS Code Remote SSH, Docker, or
+- GitHits or official vendor documentation: for current NixOS, Home Manager,
+  disko, nixos-anywhere, and netcup-specific documentation.
+- `diagnosing-bugs`: if NixOS install, SSH, Tailscale, VS Code Remote SSH, Docker, or
   `nixos-rebuild` fails.
 - `handoff`: if the implementation is not finished in one session and another
   agent needs a compact continuation document.

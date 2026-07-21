@@ -26,11 +26,12 @@ environment = ["TERM", "COLORTERM"]
 [session]
 new_session_attach_mode = "tmux"
 
-[session.custom_agents]
-codex-sentry = "codex --config mcp_servers.sentry.enabled=true"
-
 [mcp_servers.sentry]
-url = "https://mcp.sentry.dev/mcp"
+url = "https://mcp.sentry.dev/mcp?skills=inspect"
+enabled = true
+
+[mcp_servers.own-context]
+url = "https://mcp.own.casa/mcp"
 enabled = false
 TOML
 
@@ -63,8 +64,9 @@ assert data["environment"] == ["TERM", "COLORTERM"]
 assert data["generated"] == "keep"
 assert data["session"]["new_session_attach_mode"] == "tmux"
 assert data["session"]["unread_indicator"] is True
-assert data["session"]["custom_agents"]["codex-sentry"].startswith("codex ")
-assert data["mcp_servers"]["sentry"]["enabled"] is False
+assert data["mcp_servers"]["sentry"]["enabled"] is True
+assert data["mcp_servers"]["sentry"]["url"].endswith("?skills=inspect")
+assert data["mcp_servers"]["own-context"]["enabled"] is False
 assert data["hooks"]["state"]["trusted"] == "keep"
 PY
 

@@ -1,13 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-need_cmd() {
-  command -v "$1" >/dev/null 2>&1 || {
-    printf 'install-gitlab-create-mr: missing required command: %s\n' "$1" >&2
-    exit 1
-  }
-}
+script_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck source=_lib.sh
+source "${script_dir}/_lib.sh"
 
-need_cmd npx
-
-npx skills add https://github.com/microHoffman/agent-skills --skill gitlab-create-mr --agent '*' --global --yes
+install_global_skill https://github.com/microHoffman/agent-skills gitlab-create-mr

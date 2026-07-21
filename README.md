@@ -10,17 +10,81 @@ Manager state where declarative Nix is the right portability boundary.
 
 ## Agent skills
 
-This dotfiles repo installs personal agent skills by reference. The skill source
-code lives in its own repository; this repo only keeps the setup entrypoint.
-Local source checkouts for development live under `~/myrepos`; dotfiles installs
-published skills with `npx skills add`.
+Skill source remains in its upstream repository. Dotfiles keeps one installer
+per skill so the selected set is readable and independently updatable. The
+aggregate installer uses the same helpers and sources, grouping skills by
+upstream repository to avoid redundant clones.
 
-| Skill | Repository | Installer |
+Install or update the global set:
+
+```bash
+setup/agent-skills/install-all-global.sh
+```
+
+| Global skill/tool | Source | Individual installer |
 | --- | --- | --- |
-| `activecollab` | https://github.com/microHoffman/agent-skills | `setup/agent-skills/install-activecollab.sh` |
-| `create-pull-request` | https://github.com/microHoffman/agent-skills | `setup/agent-skills/install-create-pull-request.sh` |
-| `github-issues` | https://github.com/microHoffman/agent-skills | `setup/agent-skills/install-github-issues.sh` |
-| `gitlab-create-mr` | https://github.com/microHoffman/agent-skills | `setup/agent-skills/install-gitlab-create-mr.sh` |
+| `activecollab` | `microHoffman/agent-skills` | `install-activecollab.sh` |
+| `agent-browser` CLI + skill | `vercel-labs/agent-browser` | `install-agent-browser.sh` |
+| `create-pull-request` | `microHoffman/agent-skills` | `install-create-pull-request.sh` |
+| `github-issues` | `microHoffman/agent-skills` | `install-github-issues.sh` |
+| `gitlab-create-mr` | `microHoffman/agent-skills` | `install-gitlab-create-mr.sh` |
+| `develop-secure-contracts` | `OpenZeppelin/openzeppelin-skills` | `install-develop-secure-contracts.sh` |
+| `upgrade-solidity-contracts` | `OpenZeppelin/openzeppelin-skills` | `install-upgrade-solidity-contracts.sh` |
+| `diagnosing-bugs` | `mattpocock/skills` | `install-diagnosing-bugs.sh` |
+| `code-review` | `mattpocock/skills` | `install-code-review.sh` |
+| `codebase-design` | `mattpocock/skills` | `install-codebase-design.sh` |
+| `domain-modeling` | `mattpocock/skills` | `install-domain-modeling.sh` |
+| `grilling` | `mattpocock/skills` | `install-grilling.sh` |
+| `grill-me` | `mattpocock/skills` | `install-grill-me.sh` |
+| `grill-with-docs` | `mattpocock/skills` | `install-grill-with-docs.sh` |
+| `improve-codebase-architecture` | `mattpocock/skills` | `install-improve-codebase-architecture.sh` |
+| `research` | `mattpocock/skills` | `install-research.sh` |
+| `resolving-merge-conflicts` | `mattpocock/skills` | `install-resolving-merge-conflicts.sh` |
+| `handoff` | `mattpocock/skills` | `install-handoff.sh` |
+| `teach` | `mattpocock/skills` | `install-teach.sh` |
+| `sentry-fix-issues` (explicit-only) | `getsentry/sentry-agent-skills` | `install-sentry-fix-issues.sh` |
+| Codex SEO suite | `AgriciDaniel/codex-seo` | `install-codex-seo.sh` |
+
+The SEO suite is installed physically but disabled by the base Codex config;
+start `codex --profile seo` to enable it. `grill-me`, `grill-with-docs`,
+`improve-codebase-architecture`, `handoff`, and `teach` retain the upstream
+explicit-only policy.
+
+Repository-specific skills are deliberately absent from the global set:
+
+| Repository target | Skills | Installer |
+| --- | --- | --- |
+| Depoto Client | `tanstack-query-angular` | `install-tanstack-query-angular.sh PATH` |
+| `own_mcp` | `mcp-builder` | `install-mcp-builder.sh PATH` |
+| PWN Protocol | Trail of Bits security workflow set | `install-pwn-protocol-skills.sh PATH` |
+
+The PWN Protocol set contains `secure-workflow-guide`, `entry-point-analyzer`,
+`property-based-testing`, `differential-review`, `fp-check`, and
+`spec-to-code-compliance`. It is not installed in Proof of Presence.
+
+To run global installation plus any repository targets that already exist:
+
+```bash
+setup/agent-skills/install-all.sh \
+  --depoto-client ~/tomatom/client \
+  --own-mcp ~/own/own_mcp \
+  --pwn-protocol ~/pwn/pwn_protocol
+```
+
+All three repository flags are optional. The installer does not search for
+repositories and does not try to deduplicate global and repository-local skills.
+
+## Documentation access
+
+After authenticating GitHub CLI, initialize GitHits with its official
+interactive setup:
+
+```bash
+setup/githits/init.sh
+```
+
+GitHits owns the machine-local integration it generates. No duplicate GitHits
+wrapper skill or hand-written GitHits block is maintained in `AGENTS.md`.
 
 ## Useful guides
 
