@@ -69,6 +69,8 @@ for key in keys:
 
 if value_type == "bool":
     expected = expected_text == "true"
+elif value_type == "integer":
+    expected = int(expected_text)
 elif value_type == "string":
     expected = expected_text
 else:
@@ -105,6 +107,8 @@ check "Git version" git --version
 check "Codex version" codex --version
 check "Codex login" codex login status
 check "AoE version" aoe --version
+check "Codex MCP OAuth callback port is fixed" check_toml_value \
+  "$codex_config" "mcp_oauth_callback_port" integer 1455
 check "Codex Sentry inspect MCP is enabled" check_codex_mcp \
   sentry true "https://mcp.sentry.dev/mcp?skills=inspect"
 check "Codex OWN MCP is disabled by default" check_codex_mcp \
