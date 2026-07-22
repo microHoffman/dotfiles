@@ -157,7 +157,6 @@ PY
 if [ "$legacy_state" = "managed" ]; then
   npx -y skills@latest remove \
     --global \
-    --agent '*' \
     --yes \
     sentry-fix-issues
 fi

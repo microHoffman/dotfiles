@@ -266,7 +266,7 @@ test_sentry_plugin_fresh_install_and_cleanup() {
   grep -Fq 'codex plugin marketplace add getsentry/plugin-codex' "$log"
   grep -Fq 'codex plugin add sentry@sentry-plugin-marketplace' "$log"
   grep -Fq 'codex plugin remove sentry@openai-curated' "$log"
-  grep -Fq "npx -y skills@latest remove --global --agent * --yes sentry-fix-issues" "$log"
+  grep -Fq "npx -y skills@latest remove --global --yes sentry-fix-issues" "$log"
   test "$(grep -Fc 'reconcile-managed-agent-configs' "$log")" = "1"
   test ! -e "${home_dir}/.agents/skills/sentry-fix-issues"
 }
