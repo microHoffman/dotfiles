@@ -234,7 +234,23 @@ ssh remote-dev
 code --remote ssh-remote+remote-dev /home/microhoffman/dotfiles
 ```
 
-## 9. Manual Auth
+## 9. Initialize Rust
+
+Nix installs the `rustup` client and its command proxies, while rustup manages
+the mutable user toolchains under `~/.rustup`. Select the moving stable channel
+once after provisioning:
+
+```bash
+rustup default stable
+rustup show active-toolchain
+rustc --version
+cargo --version
+```
+
+Project-local mise or Nix configurations may select a different Rust version
+without changing this global fallback.
+
+## 10. Manual Auth
 
 The remote-only Git key was loaded into the server ssh-agent during bootstrap.
 The agent does not retain unlocked keys across a reboot, so load it again after
@@ -272,7 +288,7 @@ Continue with [`remote-codex-aoe.md`](remote-codex-aoe.md) to install and log in
 to Codex and AoE. Its Tailscale operator, Funnel, lingering, and dashboard flags
 are separate approval gates and remain disabled during initial installation.
 
-## 10. Validate
+## 11. Validate
 
 On the server:
 

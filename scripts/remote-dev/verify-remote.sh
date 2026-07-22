@@ -27,6 +27,9 @@ check "node is available" command -v node
 check "bun is available" command -v bun
 check "uv is available" command -v uv
 check "rustup is available" command -v rustup
+check "Rust toolchain is active" rustup show active-toolchain
+check "rustc is runnable" rustc --version
+check "cargo is runnable" cargo --version
 check "mise is available" command -v mise
 check "Foundry forge is available" command -v forge
 check "Foundry cast is available" command -v cast

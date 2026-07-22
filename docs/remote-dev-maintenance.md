@@ -44,6 +44,23 @@ After the first server installation, do not routinely change
 `systemStateVersion` or `homeStateVersion` in `nix/shared/vars.nix`. They are
 compatibility baselines, not the installed NixOS and Home Manager release.
 
+## Update the Rust Stable Toolchain
+
+Nix owns the `rustup` executable, while rustup owns the mutable compiler
+toolchains in the user's home directory. Update the global stable fallback
+without asking rustup to replace its Nix-managed executable:
+
+```bash
+rustup update stable --no-self-update
+rustup show active-toolchain
+rustc --version
+cargo --version
+```
+
+Projects may pin a different Rust version through mise, `rust-toolchain.toml`,
+or a Nix development shell. Those project selections take precedence over the
+global fallback.
+
 ## Roll Back a Bad Switch
 
 If SSH still works:
