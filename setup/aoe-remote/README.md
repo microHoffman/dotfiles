@@ -56,13 +56,18 @@ omitted.
 
 The default Codex configuration keeps the official Sentry plugin disabled.
 The `sentry` profile enables the complete plugin, including its upstream skills
-and hosted MCP configuration. Install or update it with the global installer,
-then authenticate from the same profile:
+and hosted MCP configuration. Install or update it with the global installer.
+Codex 0.145.0 does not apply profile overlays in `codex mcp` management
+subcommands, so authenticate the plugin MCP with a one-off URL override:
 
 ```bash
 setup/agent-skills/install-all-global.sh
-codex --profile sentry mcp login sentry
+codex -c 'mcp_servers.sentry.url="https://mcp.sentry.dev/mcp?utm_source=plugin"' mcp login sentry
 ```
+
+The override is used only to make the server visible to the login subcommand;
+normal Sentry sessions still use `codex --profile sentry` and the MCP bundled by
+the official plugin.
 
 The installer uses Sentry's Codex marketplace distribution and preserves the
 invocation policy shipped with each skill. The deprecated standalone

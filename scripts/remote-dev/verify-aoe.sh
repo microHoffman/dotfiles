@@ -99,16 +99,11 @@ PY
 }
 
 check_codex_mcp() {
-  profile="$1"
-  server_name="$2"
-  expected_enabled="$3"
-  expected_url="${4:-}"
+  server_name="$1"
+  expected_enabled="$2"
+  expected_url="${3:-}"
 
-  if [ "$profile" = "default" ]; then
-    mcp_json="$(codex mcp list --json)"
-  else
-    mcp_json="$(codex --profile "$profile" mcp list --json)"
-  fi
+  mcp_json="$(codex mcp list --json)"
   printf '%s\n' "$mcp_json" | python3 -c '
 import json
 import sys
@@ -125,14 +120,9 @@ if expected_url and server.get("transport", {}).get("url") != expected_url:
 }
 
 check_codex_mcp_absent() {
-  profile="$1"
-  server_name="$2"
+  server_name="$1"
 
-  if [ "$profile" = "default" ]; then
-    mcp_json="$(codex mcp list --json)"
-  else
-    mcp_json="$(codex --profile "$profile" mcp list --json)"
-  fi
+  mcp_json="$(codex mcp list --json)"
   printf '%s\n' "$mcp_json" | python3 -c '
 import json
 import sys
@@ -144,15 +134,10 @@ raise SystemExit(0 if server_name not in servers else 1)
 }
 
 check_codex_plugin() {
-  profile="$1"
-  plugin_id="$2"
-  expected_enabled="$3"
+  plugin_id="$1"
+  expected_enabled="$2"
 
-  if [ "$profile" = "default" ]; then
-    plugin_json="$(codex plugin list --json)"
-  else
-    plugin_json="$(codex --profile "$profile" plugin list --json)"
-  fi
+  plugin_json="$(codex plugin list --json)"
   printf '%s\n' "$plugin_json" | python3 -c '
 import json
 import sys
@@ -168,6 +153,65 @@ if plugin.get("installed") is not True:
 enabled = plugin.get("enabled") is True
 raise SystemExit(0 if enabled == (expected_enabled == "true") else 1)
 ' "$plugin_id" "$expected_enabled"
+}
+
+check_codex_profile_skill() {
+  profile="$1"
+  skill_name="$2"
+
+  codex --profile "$profile" debug prompt-input | python3 -c '
+import json
+import sys
+
+skill_name = sys.argv[1]
+items = json.load(sys.stdin)
+text = "\n".join(
+    content.get("text", "")
+    for item in items
+    for content in item.get("content", [])
+    if isinstance(content, dict)
+)
+raise SystemExit(0 if skill_name in text else 1)
+' "$skill_name"
+}
+
+check_installed_plugin_mcp() {
+  plugin_id="$1"
+  marketplace_name="$2"
+  plugin_name="$3"
+  server_name="$4"
+  expected_url="$5"
+
+  codex plugin list --json | python3 -c '
+import json
+import pathlib
+import re
+import sys
+
+codex_home, plugin_id, marketplace, plugin_name, server_name, expected_url = sys.argv[1:]
+plugins = {
+    plugin["pluginId"]: plugin
+    for plugin in json.load(sys.stdin).get("installed", [])
+}
+plugin = plugins[plugin_id]
+version = plugin.get("version", "")
+if plugin.get("installed") is not True or not re.fullmatch(r"[A-Za-z0-9._-]+", version):
+    raise SystemExit(1)
+
+mcp_path = (
+    pathlib.Path(codex_home)
+    / "plugins"
+    / "cache"
+    / marketplace
+    / plugin_name
+    / version
+    / ".mcp.json"
+)
+mcp = json.loads(mcp_path.read_text())
+server = mcp.get("mcpServers", {}).get(server_name, {})
+raise SystemExit(0 if server.get("url") == expected_url else 1)
+' "$codex_home" "$plugin_id" "$marketplace_name" "$plugin_name" \
+    "$server_name" "$expected_url"
 }
 
 check_json_value() {
@@ -212,11 +256,11 @@ check "AoE version" aoe --version
 check "Codex MCP OAuth callback port is fixed" check_toml_value \
   "$codex_config" "mcp_oauth_callback_port" integer 1455
 check "Codex Sentry plugin is disabled by default" check_codex_plugin \
-  default sentry@sentry-plugin-marketplace false
+  sentry@sentry-plugin-marketplace false
 check "Codex Sentry MCP is absent by default" check_codex_mcp_absent \
-  default sentry
+  sentry
 check "Codex OWN MCP is disabled by default" check_codex_mcp \
-  default own-context false
+  own-context false
 check "Codex SEO profile exists" test -f "$codex_home/seo.config.toml"
 check "Codex OWN profile exists" test -f "$codex_home/own.config.toml"
 check "Codex Sentry profile exists" test -f "$codex_home/sentry.config.toml"
@@ -226,10 +270,14 @@ check "Codex SEO profile enables Nix native libraries" check_toml_value \
   "/run/current-system/sw/share/nix-ld/lib"
 check "Codex OWN profile enables OWN MCP" check_toml_value \
   "$codex_home/own.config.toml" "mcp_servers.own-context.enabled" bool true
-check "Codex Sentry profile enables the official plugin" check_codex_plugin \
-  sentry sentry@sentry-plugin-marketplace true
-check "Codex Sentry profile enables the plugin MCP" check_codex_mcp \
-  sentry sentry true "https://mcp.sentry.dev/mcp?utm_source=plugin"
+check "Codex Sentry profile enables the official plugin" check_toml_value \
+  "$codex_home/sentry.config.toml" \
+  "plugins.sentry@sentry-plugin-marketplace.enabled" bool true
+check "Codex Sentry profile loads official skills at runtime" \
+  check_codex_profile_skill sentry sentry-debug-issue
+check "Official Sentry plugin supplies the hosted MCP" check_installed_plugin_mcp \
+  sentry@sentry-plugin-marketplace sentry-plugin-marketplace sentry sentry \
+  "https://mcp.sentry.dev/mcp?utm_source=plugin"
 check "Deprecated Sentry skill is removed" check_legacy_sentry_skill_removed
 check "AoE uses tmux for new session attachment" check_toml_value \
   "$aoe_config" "session.new_session_attach_mode" string tmux
