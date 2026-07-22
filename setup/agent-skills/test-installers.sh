@@ -50,7 +50,7 @@ EOF
     XDG_CONFIG_HOME="${home_dir}/.config" \
     TEST_LOG="$log" \
     PATH="${bin_dir}:$PATH" \
-    "${installer_dir}/install-activecollab.sh" >/dev/null
+    bash "${installer_dir}/install-activecollab.sh" >/dev/null
 
   grep -Fq 'mise age=0d latest github:microHoffman/activecollab-cli' "$log"
 }
@@ -110,7 +110,7 @@ EOF
     TEST_LOG="$log" \
     TEST_NODE_MAJOR=24 \
     PATH="${bin_dir}:$PATH" \
-    "${installer_dir}/install-agent-browser.sh"
+    bash "${installer_dir}/install-agent-browser.sh"
 
   grep -Fq "npm install --global --prefix ${home_dir}/.local agent-browser@latest" "$log"
   grep -Fq 'agent-browser install' "$log"
@@ -163,7 +163,7 @@ EOF
     TEST_LOG="$log" \
     TEST_NODE_MAJOR=20 \
     PATH="${bin_dir}:$PATH" \
-    "${installer_dir}/install-agent-browser.sh"
+    bash "${installer_dir}/install-agent-browser.sh"
 
   grep -Fq 'mise install node@24' "$log"
   grep -Fq 'mise exec node@24 -- npm install --global --prefix' "$log"
