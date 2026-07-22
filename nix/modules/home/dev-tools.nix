@@ -19,6 +19,7 @@
     eza
     fd
     file
+    foundry
     fzf
     gcc
     gh

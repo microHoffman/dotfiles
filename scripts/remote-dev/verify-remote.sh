@@ -28,6 +28,10 @@ check "bun is available" command -v bun
 check "uv is available" command -v uv
 check "rustup is available" command -v rustup
 check "mise is available" command -v mise
+check "Foundry forge is available" command -v forge
+check "Foundry cast is available" command -v cast
+check "Foundry anvil is available" command -v anvil
+check "Foundry chisel is available" command -v chisel
 check "psql is available" command -v psql
 check "mysql client is available" command -v mysql
 check "redis-cli is available" command -v redis-cli

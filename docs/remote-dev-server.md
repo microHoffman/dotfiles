@@ -536,6 +536,7 @@ bun
 python3
 uv
 rustup
+foundry
 mise
 ```
 
@@ -876,7 +877,7 @@ After implementation/install, verify:
 - `docker compose` works in a sample/project repo
 - `nix-ld` avoids VS Code server binary issues
 - `direnv` and `nix-direnv` work
-- Node.js, Bun, Python, uv, rustup, and mise are available
+- Node.js, Bun, Python, uv, rustup, Foundry, and mise are available
 - database clients are available
 - remote Git SSH key can clone/push to GitHub/GitLab
 - Codex installs/logs in manually

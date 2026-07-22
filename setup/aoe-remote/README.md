@@ -50,8 +50,9 @@ and `approvals_reviewer = "auto_review"`. Auto-review changes who reviews an
 eligible escalation; it does not disable the sandbox or grant full host access.
 
 The AoE baseline keeps terminal/tmux sessions, makes Codex the default tool,
-enables the normal worktree workflow, preserves explicit conversation resume,
-and keeps YOLO disabled. ACP/structured sessions are intentionally omitted.
+keeps worktrees opt-in for each new session, preserves explicit conversation
+resume, and keeps YOLO disabled. ACP/structured sessions are intentionally
+omitted.
 
 The default Codex configuration enables Sentry's read-oriented `inspect`
 toolset. Authentication remains an explicit user action:

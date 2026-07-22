@@ -299,7 +299,9 @@ Plain `aoe` opens the normal TUI using the same user, AoE state, and tmux server
 as the dashboard service. Press `R` if the TUI asks to attach to the running web
 daemon or show its QR screen.
 
-Create one outcome-oriented worktree session per concurrent task:
+New sessions use the selected project checkout by default. When isolation for a
+concurrent task is useful, opt into one outcome-oriented worktree session with
+the new-session toggle or the explicit CLI flags:
 
 ```bash
 aoe add /path/to/example \

@@ -26,6 +26,9 @@ environment = ["TERM", "COLORTERM"]
 [session]
 new_session_attach_mode = "tmux"
 
+[worktree]
+enabled = false
+
 [mcp_servers.sentry]
 url = "https://mcp.sentry.dev/mcp?skills=inspect"
 enabled = true
@@ -44,6 +47,9 @@ generated = "keep"
 [session]
 new_session_attach_mode = "live_send"
 unread_indicator = true
+
+[worktree]
+enabled = true
 
 [hooks.state]
 trusted = "keep"
@@ -64,6 +70,7 @@ assert data["environment"] == ["TERM", "COLORTERM"]
 assert data["generated"] == "keep"
 assert data["session"]["new_session_attach_mode"] == "tmux"
 assert data["session"]["unread_indicator"] is True
+assert data["worktree"]["enabled"] is False
 assert data["mcp_servers"]["sentry"]["enabled"] is True
 assert data["mcp_servers"]["sentry"]["url"].endswith("?skills=inspect")
 assert data["mcp_servers"]["own-context"]["enabled"] is False

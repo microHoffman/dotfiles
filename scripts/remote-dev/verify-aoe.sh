@@ -123,6 +123,8 @@ check "Codex OWN profile enables OWN MCP" check_toml_value \
   "$codex_home/own.config.toml" "mcp_servers.own-context.enabled" bool true
 check "AoE uses tmux for new session attachment" check_toml_value \
   "$aoe_config" "session.new_session_attach_mode" string tmux
+check "AoE keeps worktrees disabled by default" check_toml_value \
+  "$aoe_config" "worktree.enabled" bool false
 check "AoE SEO profile selects Codex SEO" check_toml_value \
   "$aoe_state_dir/profiles/seo/config.toml" \
   "session.agent_command_override.codex" string "codex --profile seo"
