@@ -45,8 +45,10 @@
       # Make mise-managed tools available to Codex command shells without full shell activation.
       if [[ -n "''${CODEX_THREAD_ID:-}" || -n "''${CODEX_SANDBOX:-}" || -n "''${CODEX_SANDBOX_NETWORK_DISABLED:-}" ]]; then
         mise_shims="''${MISE_SHIMS_DIR:-''${XDG_DATA_HOME:-$HOME/.local/share}/mise/shims}"
-        if [[ -d "$mise_shims" && ":$PATH:" != *":$mise_shims:"* ]]; then
-          export PATH="$mise_shims:$PATH"
+        if [[ -d "$mise_shims" ]]; then
+          typeset -U path
+          path=("$HOME/.local/bin" "$mise_shims" $path)
+          export PATH
         fi
       fi
     '';

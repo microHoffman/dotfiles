@@ -56,6 +56,20 @@
             touch "$out"
           '';
 
+      checks.${system}.agent-skill-installers =
+        pkgs.runCommand "agent-skill-installers-check"
+          {
+            nativeBuildInputs = [
+              pkgs.bash
+              pkgs.coreutils
+              pkgs.gnugrep
+            ];
+          }
+          ''
+            bash ${../setup/agent-skills/test-installers.sh} ${../setup/agent-skills}
+            touch "$out"
+          '';
+
       formatter.${system} = pkgs.nixfmt;
     };
 }

@@ -4,21 +4,28 @@
     enable = true;
     libraries = with pkgs; [
       alsa-lib
+      at-spi2-atk
       bzip2
+      cairo
       curl
       dbus
+      expat
       fontconfig
       freetype
+      gdk-pixbuf
       glib
       gtk3
       libGL
       libffi
+      libgbm
+      libxkbcommon
       libxcrypt
       libxml2
       ncurses
       nspr
       nss
       openssl
+      pango
       readline
       sqlite
       stdenv.cc.cc

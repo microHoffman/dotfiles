@@ -7,7 +7,12 @@
 let
   reconciler = pkgs.callPackage ../../packages/agent-config-reconciler.nix { };
   codexTemplate = ../../../setup/aoe-remote/codex-config.toml;
-  codexSeoTemplate = ../../../setup/aoe-remote/seo.config.toml;
+  codexSeoTemplate = pkgs.writeText "codex-seo-config.toml" ''
+    ${builtins.readFile ../../../setup/aoe-remote/seo.config.toml}
+
+    [shell_environment_policy]
+    set = { LD_LIBRARY_PATH = "/run/current-system/sw/share/nix-ld/lib" }
+  '';
   codexOwnTemplate = ../../../setup/aoe-remote/own.config.toml;
   aoeTemplate = ../../../setup/aoe-remote/aoe-config.toml;
   aoeSeoTemplate = ../../../setup/aoe-remote/profiles/seo/config.toml;

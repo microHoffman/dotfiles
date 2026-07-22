@@ -17,7 +17,7 @@ activecollab_cli_config="${mise_config_home}/mise/conf.d/activecollab-cli.toml"
 mkdir -p "$(dirname -- "$activecollab_cli_config")"
 if [ "$activecollab_cli_requested_version" = "latest" ]; then
   activecollab_cli_version="$(
-    MISE_MINIMUM_RELEASE_AGE=0 mise latest "$activecollab_cli_tool"
+    MISE_MINIMUM_RELEASE_AGE=0d mise latest "$activecollab_cli_tool"
   )"
 else
   activecollab_cli_version="$activecollab_cli_requested_version"

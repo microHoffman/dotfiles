@@ -78,6 +78,26 @@ raise SystemExit(0 if value == expected else 1)
 PY
 }
 
+check_codex_mcp() {
+  server_name="$1"
+  expected_enabled="$2"
+  expected_url="${3:-}"
+
+  codex mcp list --json | python3 -c '
+import json
+import sys
+
+server_name, expected_enabled, expected_url = sys.argv[1:]
+servers = {server["name"]: server for server in json.load(sys.stdin)}
+server = servers[server_name]
+enabled = server.get("enabled") is True
+if enabled != (expected_enabled == "true"):
+    raise SystemExit(1)
+if expected_url and server.get("transport", {}).get("url") != expected_url:
+    raise SystemExit(1)
+' "$server_name" "$expected_enabled" "$expected_url"
+}
+
 check "tailscale status" tailscale status
 check "Tailscale Funnel status" tailscale funnel status
 check "tmux version" tmux -V
@@ -85,12 +105,18 @@ check "Git version" git --version
 check "Codex version" codex --version
 check "Codex login" codex login status
 check "AoE version" aoe --version
-check "Codex Sentry inspect MCP is enabled" check_toml_value \
-  "$codex_config" "mcp_servers.sentry.enabled" bool true
-check "Codex OWN MCP is disabled by default" check_toml_value \
-  "$codex_config" "mcp_servers.own-context.enabled" bool false
+check "Codex Sentry inspect MCP is enabled" check_codex_mcp \
+  sentry true "https://mcp.sentry.dev/mcp?skills=inspect"
+check "Codex OWN MCP is disabled by default" check_codex_mcp \
+  own-context false
 check "Codex SEO profile exists" test -f "$codex_home/seo.config.toml"
 check "Codex OWN profile exists" test -f "$codex_home/own.config.toml"
+check "Codex SEO profile enables Nix native libraries" check_toml_value \
+  "$codex_home/seo.config.toml" \
+  "shell_environment_policy.set.LD_LIBRARY_PATH" string \
+  "/run/current-system/sw/share/nix-ld/lib"
+check "Codex OWN profile enables OWN MCP" check_toml_value \
+  "$codex_home/own.config.toml" "mcp_servers.own-context.enabled" bool true
 check "AoE uses tmux for new session attachment" check_toml_value \
   "$aoe_config" "session.new_session_attach_mode" string tmux
 check "AoE SEO profile selects Codex SEO" check_toml_value \

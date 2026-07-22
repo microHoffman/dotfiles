@@ -11,10 +11,9 @@ managed_block="$(cat <<'EOF'
 if [ -n "${CODEX_THREAD_ID:-}" ] || [ -n "${CODEX_SANDBOX:-}" ] || [ -n "${CODEX_SANDBOX_NETWORK_DISABLED:-}" ]; then
   mise_shims="${MISE_SHIMS_DIR:-${XDG_DATA_HOME:-$HOME/.local/share}/mise/shims}"
   if [ -d "$mise_shims" ]; then
-    case ":$PATH:" in
-      *":$mise_shims:"*) ;;
-      *) export PATH="$mise_shims:$PATH" ;;
-    esac
+    typeset -U path
+    path=("$HOME/.local/bin" "$mise_shims" $path)
+    export PATH
   fi
 fi
 # <<< dotfiles codex mise shims <<<

@@ -17,4 +17,13 @@ installer_path="${temporary_dir}/install.sh"
 
 curl -fsSL "$installer_url" -o "$installer_path"
 chmod 700 "$installer_path"
-CODEX_SEO_REF="$seo_ref" bash "$installer_path"
+nix_ld_library_path="/run/current-system/sw/share/nix-ld/lib"
+if [ -d "$nix_ld_library_path" ]; then
+  if [ -n "${LD_LIBRARY_PATH:-}" ]; then
+    nix_ld_library_path="${nix_ld_library_path}:${LD_LIBRARY_PATH}"
+  fi
+  CODEX_SEO_REF="$seo_ref" LD_LIBRARY_PATH="$nix_ld_library_path" \
+    bash "$installer_path"
+else
+  CODEX_SEO_REF="$seo_ref" bash "$installer_path"
+fi
