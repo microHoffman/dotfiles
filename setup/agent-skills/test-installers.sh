@@ -6,6 +6,12 @@ installer_dir="${1:-$script_dir}"
 temporary_dir="$(mktemp -d)"
 trap 'rm -rf -- "$temporary_dir"' EXIT
 
+make_executable() {
+  local path="$1"
+  sed -i "1s|.*|#!${BASH}|" "$path"
+  chmod 700 "$path"
+}
+
 make_npx_stub() {
   local bin_dir="$1"
   cat >"${bin_dir}/npx" <<'EOF'
@@ -13,7 +19,7 @@ make_npx_stub() {
 set -euo pipefail
 printf 'npx %s\n' "$*" >>"$TEST_LOG"
 EOF
-  chmod 700 "${bin_dir}/npx"
+  make_executable "${bin_dir}/npx"
 }
 
 test_activecollab_release_age() {
@@ -43,7 +49,7 @@ case "$1" in
     ;;
 esac
 EOF
-  chmod 700 "${bin_dir}/mise"
+  make_executable "${bin_dir}/mise"
   make_npx_stub "$bin_dir"
 
   HOME="$home_dir" \
@@ -63,7 +69,7 @@ make_agent_browser_stubs() {
 set -euo pipefail
 printf '%s\n' "${TEST_NODE_MAJOR:-24}"
 EOF
-  chmod 700 "${bin_dir}/node"
+  make_executable "${bin_dir}/node"
 
   cat >"${bin_dir}/npm" <<'EOF'
 #!/usr/bin/env bash
@@ -84,9 +90,10 @@ cat >"${prefix}/bin/agent-browser" <<'SCRIPT'
 set -euo pipefail
 printf 'agent-browser %s\n' "$*" >>"$TEST_LOG"
 SCRIPT
+sed -i "1s|.*|#!${BASH}|" "${prefix}/bin/agent-browser"
 chmod 700 "${prefix}/bin/agent-browser"
 EOF
-  chmod 700 "${bin_dir}/npm"
+  make_executable "${bin_dir}/npm"
 
   make_npx_stub "$bin_dir"
 }
@@ -104,7 +111,7 @@ test_agent_browser_user_prefix() {
 #!/usr/bin/env bash
 exit 99
 EOF
-  chmod 700 "${bin_dir}/mise"
+  make_executable "${bin_dir}/mise"
 
   HOME="$home_dir" \
     TEST_LOG="$log" \
@@ -157,7 +164,7 @@ case "$1" in
     ;;
 esac
 EOF
-  chmod 700 "${bin_dir}/mise"
+  make_executable "${bin_dir}/mise"
 
   HOME="$home_dir" \
     TEST_LOG="$log" \
