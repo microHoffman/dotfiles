@@ -41,34 +41,36 @@
         ];
       };
 
-      checks.${system}.agent-config-reconciler =
-        pkgs.runCommand "agent-config-reconciler-check"
-          {
-            nativeBuildInputs = [
-              agentConfigReconciler
-              pkgs.coreutils
-              pkgs.python3
-              pkgs.util-linux
-            ];
-          }
-          ''
-            bash ${../setup/aoe-remote/test-reconcile-config.sh} ${pkgs.lib.getExe agentConfigReconciler}
-            touch "$out"
-          '';
+      checks.${system} = {
+        agent-config-reconciler =
+          pkgs.runCommand "agent-config-reconciler-check"
+            {
+              nativeBuildInputs = [
+                agentConfigReconciler
+                pkgs.coreutils
+                pkgs.python3
+                pkgs.util-linux
+              ];
+            }
+            ''
+              bash ${../setup/aoe-remote/test-reconcile-config.sh} ${pkgs.lib.getExe agentConfigReconciler}
+              touch "$out"
+            '';
 
-      checks.${system}.agent-skill-installers =
-        pkgs.runCommand "agent-skill-installers-check"
-          {
-            nativeBuildInputs = [
-              pkgs.bash
-              pkgs.coreutils
-              pkgs.gnugrep
-            ];
-          }
-          ''
-            bash ${../setup/agent-skills/test-installers.sh} ${../setup/agent-skills}
-            touch "$out"
-          '';
+        agent-skill-installers =
+          pkgs.runCommand "agent-skill-installers-check"
+            {
+              nativeBuildInputs = [
+                pkgs.bash
+                pkgs.coreutils
+                pkgs.gnugrep
+              ];
+            }
+            ''
+              bash ${../setup/agent-skills/test-installers.sh} ${../setup/agent-skills}
+              touch "$out"
+            '';
+      };
 
       formatter.${system} = pkgs.nixfmt;
     };
