@@ -10,9 +10,8 @@ mcp_oauth_callback_port = 1455
 [features]
 goals = true
 
-[mcp_servers.sentry]
-url = "https://mcp.sentry.dev/mcp?skills=inspect"
-enabled = true
+[plugins."sentry@sentry-plugin-marketplace"]
+enabled = false
 
 [mcp_servers.openaiDeveloperDocs]
 url = "https://developers.openai.com/mcp"

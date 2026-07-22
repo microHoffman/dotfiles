@@ -115,24 +115,32 @@ codex login --device-auth
 codex login status
 ```
 
-The default Codex configuration enables Sentry's read-oriented `inspect`
-toolset. Authenticate it explicitly with:
+The default Codex configuration keeps Sentry disabled. The dedicated Sentry
+profile enables Sentry's complete official Codex plugin, including its bundled
+skills and hosted MCP. Install the global tooling and authenticate within that
+profile:
 
 ```bash
-codex mcp login sentry
+setup/agent-skills/install-all-global.sh
+codex --profile sentry mcp login sentry
 ```
 
-The separately installed `sentry-fix-issues` skill is explicit-only and is for
-tasks that should diagnose and change code, not routine issue lookup.
+The plugin preserves Sentry's own per-skill invocation policies. The deprecated
+standalone `sentry-fix-issues` skill and the dotfiles-maintained explicit-only
+wrapper are removed.
 
 Install global skills, repository-scoped skills, and GitHits using the commands
-in [`setup/aoe-remote/README.md`](../setup/aoe-remote/README.md). The `seo` and
-`own` AoE profiles select their matching Codex profiles:
+in [`setup/aoe-remote/README.md`](../setup/aoe-remote/README.md). The `seo`,
+`own`, and `sentry` AoE profiles select their matching Codex profiles:
 
 ```bash
 aoe -p seo
 aoe -p own
+aoe -p sentry
 ```
+
+Sentry tmux sessions receive the complete plugin. ACP sessions currently
+receive the profile-local Sentry MCP but not the Codex profile's plugin skills.
 
 ## Phase 3: OpenSSH over Tailscale
 

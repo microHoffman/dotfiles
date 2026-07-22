@@ -54,26 +54,41 @@ keeps worktrees opt-in for each new session, preserves explicit conversation
 resume, and keeps YOLO disabled. ACP/structured sessions are intentionally
 omitted.
 
-The default Codex configuration enables Sentry's read-oriented `inspect`
-toolset. Authentication remains an explicit user action:
+The default Codex configuration keeps the official Sentry plugin disabled.
+The `sentry` profile enables the complete plugin, including its upstream skills
+and hosted MCP configuration. Install or update it with the global installer,
+then authenticate from the same profile:
 
 ```bash
-codex mcp login sentry
+setup/agent-skills/install-all-global.sh
+codex --profile sentry mcp login sentry
 ```
 
-The `sentry-fix-issues` skill is installed separately and marked explicit-only.
-Reading a Sentry issue therefore does not trigger the fix workflow; invoke the
-skill when the task is to diagnose and change code for a Sentry issue.
+The installer uses Sentry's Codex marketplace distribution and preserves the
+invocation policy shipped with each skill. The deprecated standalone
+`sentry-fix-issues` installation and its custom metadata are removed during the
+migration.
 
-Two optional profiles are installed:
+Three optional profiles are installed:
 
 - `codex --profile seo` enables the local Codex SEO suite, except integrations
   that require separately configured DataForSEO, Firecrawl, Google, or Gemini
   credentials.
 - `codex --profile own` enables the hosted `own-context` MCP server.
+- `codex --profile sentry` enables Sentry's official Codex plugin, all of its
+  bundled skills, and its hosted MCP server.
 
-AoE profiles named `seo` and `own` launch Codex with those profile flags. Use
-`aoe -p seo` or `aoe -p own`; each AoE profile has its own session workspace.
+AoE profiles named `seo`, `own`, and `sentry` launch Codex with those profile
+flags in tmux mode. Use `aoe -p seo`, `aoe -p own`, or `aoe -p sentry`; each AoE
+profile has its own session workspace. The Sentry AoE profile also supplies the
+hosted MCP through its profile-local `mcp.json` for ACP sessions. ACP does not
+currently activate the Codex profile's plugin skills.
+
+On the NixOS `remote-dev` host, Home Manager installs
+`reconcile-managed-agent-configs`. Activation and the Sentry plugin installer
+both use this command so Codex's native plugin installation cannot leave the
+plugin enabled in the default profile. The reconciler removes known legacy
+values only when they still exactly match the old dotfiles-managed values.
 
 ## Install skills and documentation access
 

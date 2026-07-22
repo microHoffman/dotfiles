@@ -65,6 +65,7 @@
                 pkgs.coreutils
                 pkgs.gnugrep
                 pkgs.gnused
+                pkgs.python3
               ];
             }
             ''

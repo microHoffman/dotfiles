@@ -55,8 +55,8 @@ run_step "Matt Pocock engineering and productivity skills" install_global_skills
   handoff \
   teach
 
-run_step "Explicit-only Sentry fix workflow" \
-  "${script_dir}/install-sentry-fix-issues.sh"
+run_step "Official Sentry Codex plugin" \
+  "${script_dir}/install-sentry-plugin.sh"
 
 run_step "Codex SEO suite" \
   "${script_dir}/install-codex-seo.sh"

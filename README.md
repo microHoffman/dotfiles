@@ -42,11 +42,14 @@ setup/agent-skills/install-all-global.sh
 | `resolving-merge-conflicts` | `mattpocock/skills` | `install-resolving-merge-conflicts.sh` |
 | `handoff` | `mattpocock/skills` | `install-handoff.sh` |
 | `teach` | `mattpocock/skills` | `install-teach.sh` |
-| `sentry-fix-issues` (explicit-only) | `getsentry/sentry-agent-skills` | `install-sentry-fix-issues.sh` |
+| Sentry Codex plugin, skills, and MCP | `getsentry/plugin-codex` | `install-sentry-plugin.sh` |
 | Codex SEO suite | `AgriciDaniel/codex-seo` | `install-codex-seo.sh` |
 
-The SEO suite is installed physically but disabled by the base Codex config;
-start `codex --profile seo` to enable it. `grill-me`, `grill-with-docs`,
+The SEO suite and official Sentry plugin are installed physically but disabled
+by the base Codex config; start `codex --profile seo` or
+`codex --profile sentry` to enable them. The Sentry plugin supplies its complete
+upstream skill set and hosted MCP configuration without a dotfiles-maintained
+skill wrapper. `grill-me`, `grill-with-docs`,
 `improve-codebase-architecture`, `handoff`, and `teach` retain the upstream
 explicit-only policy.
 

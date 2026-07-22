@@ -35,6 +35,17 @@ def parse_args():
     parser.add_argument("--source", type=Path, required=True)
     parser.add_argument("--target", type=Path, required=True)
     parser.add_argument("--lock", type=Path, required=True)
+    parser.add_argument(
+        "--delete-if-equals",
+        action="append",
+        default=[],
+        nargs=2,
+        metavar=("DOTTED_PATH", "TOML_VALUE"),
+        help=(
+            "delete a target value only when it still equals the supplied "
+            "TOML value; may be repeated"
+        ),
+    )
     return parser.parse_args()
 
 
@@ -100,6 +111,67 @@ def merge_tables(target, source):
             target[key] = copy.deepcopy(source_value)
             changed = True
 
+    return changed
+
+
+def normalize_toml_value(value):
+    if hasattr(value, "unwrap"):
+        value = value.unwrap()
+    if is_table(value):
+        return {
+            key: normalize_toml_value(child)
+            for key, child in value.items()
+        }
+    if isinstance(value, list):
+        return [normalize_toml_value(child) for child in value]
+    return value
+
+
+def parse_delete_rules(raw_rules):
+    rules = []
+    for dotted_path, raw_value in raw_rules:
+        keys = dotted_path.split(".")
+        if any(not key for key in keys):
+            raise ReconcileError(
+                f"invalid delete-if-equals path: {dotted_path}"
+            )
+        try:
+            document = tomlkit.parse(f"value = {raw_value}\n")
+        except tomlkit.exceptions.ParseError as error:
+            message = (
+                "invalid delete-if-equals TOML value for "
+                f"{dotted_path}: {error}"
+            )
+            raise ReconcileError(message) from error
+        rules.append((keys, normalize_toml_value(document["value"])))
+    return rules
+
+
+def delete_matching_values(target, rules):
+    changed = False
+    for keys, expected_value in rules:
+        current = target
+        parents = []
+        for key in keys[:-1]:
+            if not is_table(current) or key not in current:
+                break
+            parents.append((current, key))
+            current = current[key]
+        else:
+            leaf = keys[-1]
+            if (
+                is_table(current)
+                and leaf in current
+                and normalize_toml_value(current[leaf]) == expected_value
+            ):
+                del current[leaf]
+                changed = True
+                for parent, key in reversed(parents):
+                    child = parent.get(key)
+                    if is_table(child) and not child:
+                        del parent[key]
+                    else:
+                        break
     return changed
 
 
@@ -177,7 +249,7 @@ def exclusive_lock(path):
             os.close(descriptor)
 
 
-def reconcile_once(source_document, target_path):
+def reconcile_once(source_document, target_path, delete_rules):
     original_content, target_stat = read_target(target_path)
     if original_content is None:
         target_document = tomlkit.document()
@@ -186,7 +258,9 @@ def reconcile_once(source_document, target_path):
         target_document = parse_toml(original_content, target_path, "target")
         mode = stat.S_IMODE(target_stat.st_mode)
 
-    if not merge_tables(target_document, source_document):
+    changed = merge_tables(target_document, source_document)
+    changed = delete_matching_values(target_document, delete_rules) or changed
+    if not changed:
         return False
 
     rendered = tomlkit.dumps(target_document).encode("utf-8")
@@ -200,15 +274,20 @@ def reconcile_once(source_document, target_path):
     return True
 
 
-def reconcile(source_path, target_path, lock_path):
+def reconcile(source_path, target_path, lock_path, raw_delete_rules):
     source_content, _ = read_regular_file(source_path, "source")
     source_document = parse_toml(source_content, source_path, "source")
+    delete_rules = parse_delete_rules(raw_delete_rules)
 
     target_path.parent.mkdir(mode=0o700, parents=True, exist_ok=True)
     with exclusive_lock(lock_path):
         for attempt in range(1, MAX_RETRIES + 1):
             try:
-                changed = reconcile_once(source_document, target_path)
+                changed = reconcile_once(
+                    source_document,
+                    target_path,
+                    delete_rules,
+                )
                 action = "Updated" if changed else "Unchanged"
                 print(f"{action} managed config: {target_path}")
                 return
@@ -224,7 +303,12 @@ def reconcile(source_path, target_path, lock_path):
 def main():
     args = parse_args()
     try:
-        reconcile(args.source, args.target, args.lock)
+        reconcile(
+            args.source,
+            args.target,
+            args.lock,
+            args.delete_if_equals,
+        )
     except ReconcileError as error:
         print(f"reconcile-agent-config: {error}", file=sys.stderr)
         return 1
