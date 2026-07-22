@@ -1,0 +1,13 @@
+[rpc_endpoints]
+ethereum_drpc = "https://ethereum.drpc.org"
+ethereum_sepolia_drpc = "https://sepolia.drpc.org"
+celo_drpc = "https://celo.drpc.org"
+celo_sepolia_drpc = "https://celo-sepolia.drpc.org"
+arbitrum_drpc = "https://arbitrum.drpc.org"
+arbitrum_sepolia_drpc = "https://arbitrum-sepolia.drpc.org"
+optimism_drpc = "https://optimism.drpc.org"
+optimism_sepolia_drpc = "https://optimism-sepolia.drpc.org"
+base_drpc = "https://base.drpc.org"
+base_sepolia_drpc = "https://base-sepolia.drpc.org"
+polygon_drpc = "https://polygon.drpc.org"
+polygon_amoy_drpc = "https://polygon-amoy.drpc.org"

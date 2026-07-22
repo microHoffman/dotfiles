@@ -67,6 +67,7 @@
         ../../modules/home/agent-config.nix
         ../../modules/home/aoe-dashboard.nix
         ../../modules/home/dev-tools.nix
+        ../../modules/home/foundry.nix
         ../../modules/home/git.nix
         ../../modules/home/mise.nix
         ../../modules/home/neovim.nix
