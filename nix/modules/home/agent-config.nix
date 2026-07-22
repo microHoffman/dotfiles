@@ -25,7 +25,10 @@ let
   aoeOwnConfig = "${config.xdg.configHome}/agent-of-empires/profiles/own/config.toml";
 in
 {
-  home.file.".codex/AGENTS.md".source = ../../../setup/agent-config/AGENTS.md;
+  home.file.".codex/AGENTS.md" = {
+    source = ../../../setup/agent-config/AGENTS.md;
+    force = true;
+  };
 
   home.activation.reconcileAgentConfigs = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
     $DRY_RUN_CMD ${lib.getExe reconciler} \
