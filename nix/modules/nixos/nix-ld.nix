@@ -8,6 +8,7 @@
       bzip2
       cairo
       curl
+      cups
       dbus
       expat
       fontconfig

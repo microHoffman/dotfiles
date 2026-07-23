@@ -30,6 +30,12 @@ Use `agent-browser` for ad-hoc website interaction, authenticated browsing,
 data extraction, screenshots, and exploratory smoke testing. Run
 `agent-browser --help` for its current commands.
 
+If an agent-browser command is blocked by the Codex sandbox's runtime socket,
+local-binding, or network restrictions, retry that command with scoped
+escalation so the configured auto-reviewer can evaluate it. Do not fall back to
+public APIs or search solely because the sandboxed attempt was blocked. Treat
+missing shared libraries or browser-install errors as host setup failures.
+
 Use a repository's existing `@playwright/test` setup when creating or updating
 repeatable E2E tests that belong in the codebase, or when debugging its existing
 Playwright suite. Keep committed Playwright tests and configuration as the
