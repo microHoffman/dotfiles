@@ -7,6 +7,48 @@ approval_policy = "on-request"
 approvals_reviewer = "auto_review"
 mcp_oauth_callback_port = 1455
 
+[sandbox_workspace_write]
+writable_roots = [
+  # Runtime and package-manager metadata.
+  "/home/microhoffman/.cache/mise",
+  "/home/microhoffman/.cache/node/corepack",
+  "/home/microhoffman/.cache/node-gyp",
+
+  # JavaScript package managers.
+  "/home/microhoffman/.cache/yarn",
+  "/home/microhoffman/.yarn/berry",
+  "/home/microhoffman/.npm",
+  "/home/microhoffman/.bun/install/cache",
+  "/home/microhoffman/.cache/pnpm",
+  "/home/microhoffman/.local/share/pnpm/store",
+  "/home/microhoffman/.local/state/pnpm",
+
+  # Python package managers.
+  "/home/microhoffman/.cache/uv",
+  "/home/microhoffman/.cache/pip",
+  "/home/microhoffman/.cache/pypoetry",
+
+  # Go build and module caches.
+  "/home/microhoffman/.cache/go-build",
+  "/home/microhoffman/go/pkg",
+
+  # Other dependency and build caches.
+  "/home/microhoffman/.cache/composer",
+  "/home/microhoffman/.cache/pre-commit",
+  "/home/microhoffman/.cache/sccache",
+  "/home/microhoffman/.cache/ccache",
+  "/home/microhoffman/.cache/deno",
+  "/home/microhoffman/.m2/repository",
+  "/home/microhoffman/.nuget/packages",
+  "/home/microhoffman/.local/share/NuGet/v3-cache",
+
+  # Project tooling with shared caches outside the worktree.
+  "/home/microhoffman/.cache/hardhat-nodejs",
+  "/home/microhoffman/.cache/ms-playwright",
+  "/home/microhoffman/.cache/biome",
+  "/home/microhoffman/.cache/nix",
+]
+
 [features]
 goals = true
 
