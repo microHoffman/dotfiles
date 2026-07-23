@@ -10,6 +10,7 @@
   home.packages = with pkgs; [
     bat
     btop
+    bubblewrap
     bun
     cmake
     curl
