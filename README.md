@@ -45,6 +45,11 @@ setup/agent-skills/install-all-global.sh
 | Sentry Codex plugin, skills, and MCP | `getsentry/plugin-codex` | `install-sentry-plugin.sh` |
 | Codex SEO suite | `AgriciDaniel/codex-seo` | `install-codex-seo.sh` |
 
+The remote-dev Home Manager profile includes `glab`. After `glab auth login`
+for `gitlab.tomatom.cz`, `gitlab-create-mr` prefers that authenticated CLI and
+falls back to its bundled `GITLAB_TOKEN` helper only when the CLI is unavailable
+or unauthenticated.
+
 The SEO suite and official Sentry plugin are installed physically but disabled
 by the base Codex config; start `codex --profile seo` or
 `codex --profile sentry` to enable them. The Sentry plugin supplies its complete

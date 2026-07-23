@@ -264,7 +264,7 @@ Then authenticate tools manually:
 
 ```bash
 gh auth login -h github.com
-glab auth login
+glab auth login --hostname gitlab.tomatom.cz --git-protocol ssh
 ```
 
 Install Codex/AoE configuration and the desired global skills, then initialize
