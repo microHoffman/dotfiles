@@ -143,6 +143,19 @@ Portable Codex shell setup for mise-managed `node`, `npm`, and `npx` lives in
 setup/codex-mise/install.sh
 ```
 
+### Local workstation zsh setup
+
+Local-PC-only zsh helpers live in [`setup/zsh`](setup/zsh). Install them from
+the dotfiles repository on the local PC:
+
+```bash
+setup/zsh/install.sh
+```
+
+This currently provides `shopty-tunnel` for forwarding the local privileged
+HTTP port to the Shopty container on `remote-dev`. It is deliberately not
+installed by the remote host's Home Manager configuration.
+
 ### Remote Codex and Agent of Empires
 
 Portable, non-secret setup files live in
