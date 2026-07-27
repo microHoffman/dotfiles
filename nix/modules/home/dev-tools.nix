@@ -8,6 +8,10 @@
   };
 
   home.packages = with pkgs; [
+    # Cypress headless E2E runtime.
+    cypress
+    xvfb
+
     bat
     btop
     bubblewrap
@@ -52,4 +56,9 @@
     zip
     zlib
   ];
+
+  home.sessionVariables = {
+    # Keep this aligned with the Cypress npm version used by the Depoto client.
+    CYPRESS_RUN_BINARY = "${pkgs.cypress}/bin/Cypress";
+  };
 }
