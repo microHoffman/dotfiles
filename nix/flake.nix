@@ -42,6 +42,20 @@
       };
 
       checks.${system} = {
+        codex-acp-installer =
+          pkgs.runCommand "codex-acp-installer-check"
+            {
+              nativeBuildInputs = [
+                pkgs.bash
+                pkgs.coreutils
+                pkgs.gnugrep
+              ];
+            }
+            ''
+              bash ${../setup/codex-acp/test-install.sh} ${../setup/codex-acp/install.sh}
+              touch "$out"
+            '';
+
         agent-config-reconciler =
           pkgs.runCommand "agent-config-reconciler-check"
             {

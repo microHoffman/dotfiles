@@ -47,6 +47,53 @@ check_ssh_agent_environment() {
     | grep -Fxq "$expected"
 }
 
+check_dashboard_acp_node() {
+  environment="$(
+    systemctl --user show -p Environment --value aoe-dashboard.service
+  )"
+  acp_node="$(
+    printf '%s\n' "$environment" \
+      | tr ' ' '\n' \
+      | sed -n 's/^AOE_ACP_NODE=//p'
+  )"
+  [ -n "$acp_node" ] || return 1
+  [ -x "$acp_node" ] || return 1
+
+  version="$("$acp_node" --version)"
+  major="${version#v}"
+  major="${major%%.*}"
+  case "$major" in
+    '' | *[!0-9]*)
+      return 1
+      ;;
+  esac
+  [ "$major" -eq 24 ]
+}
+
+check_dashboard_local_bin_path() {
+  expected="${HOME}/.local/bin"
+  systemctl --user show -p Environment --value aoe-dashboard.service \
+    | tr ' ' '\n' \
+    | sed -n 's/^PATH=//p' \
+    | tr ':' '\n' \
+    | grep -Fxq "$expected"
+}
+
+check_codex_acp_doctor() {
+  aoe acp doctor --json | python3 -c '
+import json
+import sys
+
+report = json.load(sys.stdin)
+if report.get("node", {}).get("meets_minimum") is not True:
+    raise SystemExit(1)
+agents = {agent["name"]: agent for agent in report.get("agents", [])}
+raise SystemExit(
+    0 if agents.get("codex", {}).get("command_present") is True else 1
+)
+'
+}
+
 check_toml_value() {
   config_file="$1"
   key_path="$2"
@@ -96,44 +143,6 @@ for key in sys.argv[2].split("."):
     value = value[key]
 raise SystemExit(1)
 PY
-}
-
-check_toml_string_contains() {
-  config_file="$1"
-  key_path="$2"
-  expected="$3"
-
-  python3 - "$config_file" "$key_path" "$expected" <<'PY'
-import pathlib
-import sys
-import tomllib
-
-value = tomllib.loads(pathlib.Path(sys.argv[1]).read_text())
-for key in sys.argv[2].split("."):
-    value = value[key]
-raise SystemExit(0 if isinstance(value, str) and sys.argv[3] in value else 1)
-PY
-}
-
-check_codex_mcp() {
-  server_name="$1"
-  expected_enabled="$2"
-  expected_url="${3:-}"
-
-  mcp_json="$(codex mcp list --json)"
-  printf '%s\n' "$mcp_json" | python3 -c '
-import json
-import sys
-
-server_name, expected_enabled, expected_url = sys.argv[1:]
-servers = {server["name"]: server for server in json.load(sys.stdin)}
-server = servers[server_name]
-enabled = server.get("enabled") is True
-if enabled != (expected_enabled == "true"):
-    raise SystemExit(1)
-if expected_url and server.get("transport", {}).get("url") != expected_url:
-    raise SystemExit(1)
-' "$server_name" "$expected_enabled" "$expected_url"
 }
 
 check_codex_mcp_absent() {
@@ -248,6 +257,29 @@ raise SystemExit(0 if value == sys.argv[3] else 1)
 PY
 }
 
+check_aoe_profile_mcp() {
+  profile="$1"
+  server_name="$2"
+  expected_url="$3"
+
+  aoe -p "$profile" mcp list --json | python3 -c '
+import json
+import sys
+
+server_name, expected_url, expected_provenance = sys.argv[1:]
+servers = {
+    server["name"]: server
+    for server in json.load(sys.stdin).get("effective", [])
+}
+server = servers[server_name]
+if server.get("url") != expected_url:
+    raise SystemExit(1)
+raise SystemExit(
+    0 if server.get("provenance") == expected_provenance else 1
+)
+' "$server_name" "$expected_url" "profile:${profile}"
+}
+
 check_legacy_sentry_skill_removed() {
   test ! -e "${HOME}/.agents/skills/sentry-fix-issues" || return 1
   python3 - "${HOME}/.agents/.skill-lock.json" <<'PY'
@@ -276,13 +308,10 @@ check "Codex Sentry plugin is disabled by default" check_codex_plugin \
   sentry@sentry-plugin-marketplace false
 check "Codex Sentry MCP is absent by default" check_codex_mcp_absent \
   sentry
-check "Codex Notion MCP is disabled by default" check_codex_mcp \
-  notion false "https://mcp.notion.com/mcp"
-check "Codex Notion MCP prompts before writes" check_toml_value \
-  "$codex_config" "mcp_servers.notion.default_tools_approval_mode" string \
-  writes
-check "Codex OWN MCP is disabled by default" check_codex_mcp \
-  own-context false
+check "Codex Notion MCP is absent by default" check_codex_mcp_absent \
+  notion
+check "Codex OWN MCP is absent by default" check_codex_mcp_absent \
+  own-context
 check "Codex SEO profile exists" test -f "$codex_home/seo.config.toml"
 check "Codex OWN profile exists" test -f "$codex_home/own.config.toml"
 check "Codex Sentry profile exists" test -f "$codex_home/sentry.config.toml"
@@ -292,12 +321,25 @@ check "Codex SEO profile enables Nix native libraries" check_toml_value \
   "/run/current-system/sw/share/nix-ld/lib"
 check "Codex OWN profile enables OWN MCP" check_toml_value \
   "$codex_home/own.config.toml" "mcp_servers.own-context.enabled" bool true
+check "Codex OWN profile has the complete OWN MCP transport" check_toml_value \
+  "$codex_home/own.config.toml" "mcp_servers.own-context.url" string \
+  "https://mcp.own.casa/mcp"
+check "Codex OWN profile has the OWN OAuth client" check_toml_value \
+  "$codex_home/own.config.toml" "mcp_servers.own-context.oauth.client_id" \
+  string "C6yemhZP2rhCPMZIuNTHKnd2hu6cyMXB"
 check "Codex OWN profile enables Notion MCP" check_toml_value \
   "$codex_home/own.config.toml" "mcp_servers.notion.enabled" bool true
-check "Codex OWN profile requires explicit text confirmation for Notion writes" \
-  check_toml_string_contains "$codex_home/own.config.toml" \
-  developer_instructions \
-  "The original request does not count as confirmation."
+check "Codex OWN profile has the complete Notion transport" check_toml_value \
+  "$codex_home/own.config.toml" "mcp_servers.notion.url" string \
+  "https://mcp.notion.com/mcp"
+check "Codex OWN profile prompts before Notion writes" check_toml_value \
+  "$codex_home/own.config.toml" \
+  "mcp_servers.notion.default_tools_approval_mode" string writes
+check "Global guidance conditionally requires Notion write confirmation" \
+  grep -Fq "Apply this section only when Notion MCP tools are available" \
+  "$codex_home/AGENTS.md"
+check "Codex OWN profile parses successfully" \
+  codex --profile own debug prompt-input
 check "Codex Sentry profile enables the official plugin" check_toml_value \
   "$codex_home/sentry.config.toml" \
   "plugins.sentry@sentry-plugin-marketplace.enabled" bool true
@@ -309,6 +351,10 @@ check "Official Sentry plugin supplies the hosted MCP" check_installed_plugin_mc
 check "Deprecated Sentry skill is removed" check_legacy_sentry_skill_removed
 check "AoE uses tmux for new session attachment" check_toml_value \
   "$aoe_config" "session.new_session_attach_mode" string tmux
+check "AoE offers structured view for new sessions" check_toml_value \
+  "$aoe_config" "acp.offer_structured_in_new_session" bool true
+check "AoE dashboard-managed ACP installation is disabled" check_toml_value \
+  "$aoe_config" "acp.allow_agent_install" bool false
 check "AoE keeps worktrees disabled by default" check_toml_value \
   "$aoe_config" "worktree.enabled" bool false
 check "AoE legacy codex-sentry command is absent" check_toml_path_absent \
@@ -321,12 +367,25 @@ check "AoE SEO profile selects Codex SEO" check_toml_value \
 check "AoE OWN profile selects Codex OWN" check_toml_value \
   "$aoe_state_dir/profiles/own/config.toml" \
   "session.agent_command_override.codex" string "codex --profile own"
+check "AoE OWN ACP profile supplies Notion" check_json_value \
+  "$aoe_state_dir/profiles/own/mcp.json" \
+  "mcpServers.notion.url" "https://mcp.notion.com/mcp"
+check "AoE OWN ACP profile supplies OWN context" check_json_value \
+  "$aoe_state_dir/profiles/own/mcp.json" \
+  "mcpServers.own-context.url" "https://mcp.own.casa/mcp"
+check "AoE resolves Notion from the OWN profile" check_aoe_profile_mcp \
+  own notion "https://mcp.notion.com/mcp"
+check "AoE resolves OWN context from the OWN profile" check_aoe_profile_mcp \
+  own own-context "https://mcp.own.casa/mcp"
 check "AoE Sentry profile selects Codex Sentry" check_toml_value \
   "$aoe_state_dir/profiles/sentry/config.toml" \
   "session.agent_command_override.codex" string "codex --profile sentry"
 check "AoE Sentry ACP profile supplies the official MCP" check_json_value \
   "$aoe_state_dir/profiles/sentry/mcp.json" \
   "mcpServers.sentry.url" "https://mcp.sentry.dev/mcp?utm_source=plugin"
+check "codex-acp is installed" command -v codex-acp
+check "codex-acp reports its version" codex-acp --version
+check "AoE ACP doctor finds Node and Codex" check_codex_acp_doctor
 check "AoE dashboard service is active" systemctl --user is-active aoe-dashboard.service
 check "AoE serve daemon reports healthy" aoe serve --status
 check "AoE dashboard URL exists (output suppressed)" aoe url
@@ -339,6 +398,9 @@ check_value "AoE runtime passphrase file mode is 0600" "600" stat -c %a "$aoe_st
 check_value "dashboard service uses Restart=on-failure" "on-failure" systemctl --user show -p Restart --value aoe-dashboard.service
 check_value "dashboard stop preserves tmux processes" "process" systemctl --user show -p KillMode --value aoe-dashboard.service
 check "dashboard agents use the Home Manager SSH agent" check_ssh_agent_environment
+check "dashboard ACP uses Home Manager Node 24" check_dashboard_acp_node
+check "dashboard PATH includes the user-local bin directory" \
+  check_dashboard_local_bin_path
 check_value "user lingering is enabled" "yes" loginctl show-user "$USER" -p Linger --value
 
 if [ "$failures" -ne 0 ]; then

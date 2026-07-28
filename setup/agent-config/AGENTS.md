@@ -40,3 +40,20 @@ Use a repository's existing `@playwright/test` setup when creating or updating
 repeatable E2E tests that belong in the codebase, or when debugging its existing
 Playwright suite. Keep committed Playwright tests and configuration as the
 project's regression-test layer; `agent-browser` does not replace them.
+
+## Notion write confirmation
+
+Apply this section only when Notion MCP tools are available in the current
+session.
+
+Before any Notion MCP tool call that can create, update, move, archive, delete,
+comment on, or otherwise modify Notion content:
+
+1. Describe the exact write, its target, and its expected effect.
+2. Ask for explicit confirmation and wait for a later user message before
+   calling the tool. The original request does not count as confirmation.
+3. Treat confirmation as valid only for the described write or batch. Do not
+   reuse it for a different write, and do not treat ambiguous or standing
+   approval as confirmation.
+
+Read-only Notion MCP calls do not require this extra confirmation.

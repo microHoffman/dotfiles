@@ -58,26 +58,6 @@ enabled = false
 [mcp_servers.openaiDeveloperDocs]
 url = "https://developers.openai.com/mcp"
 
-[mcp_servers.notion]
-url = "https://mcp.notion.com/mcp"
-enabled = false
-default_tools_approval_mode = "writes"
-
-[mcp_servers.own-context]
-url = "https://mcp.own.casa/mcp"
-enabled = false
-scopes = [
-  "openid",
-  "offline_access",
-  "context.read",
-  "context.validate",
-  "grants.read",
-  "grants.write",
-]
-
-[mcp_servers.own-context.oauth]
-client_id = "C6yemhZP2rhCPMZIuNTHKnd2hu6cyMXB"
-
 [[skills.config]]
 path = "/home/microhoffman/.codex/skills/seo/SKILL.md"
 enabled = false

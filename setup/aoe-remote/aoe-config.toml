@@ -1,3 +1,7 @@
+[acp]
+allow_agent_install = false
+offer_structured_in_new_session = true
+
 [auth]
 persist_sessions = true
 

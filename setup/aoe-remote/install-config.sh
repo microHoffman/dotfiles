@@ -30,5 +30,6 @@ install_if_missing "${script_dir}/sentry.config.toml" "${codex_home}/sentry.conf
 install_if_missing "${script_dir}/aoe-config.toml" "$aoe_config" "AoE"
 install_if_missing "${script_dir}/profiles/seo/config.toml" "${aoe_home}/profiles/seo/config.toml" "AoE SEO profile"
 install_if_missing "${script_dir}/profiles/own/config.toml" "${aoe_home}/profiles/own/config.toml" "AoE OWN profile"
+install_if_missing "${script_dir}/profiles/own/mcp.json" "${aoe_home}/profiles/own/mcp.json" "AoE OWN MCP profile"
 install_if_missing "${script_dir}/profiles/sentry/config.toml" "${aoe_home}/profiles/sentry/config.toml" "AoE Sentry profile"
 install_if_missing "${script_dir}/profiles/sentry/mcp.json" "${aoe_home}/profiles/sentry/mcp.json" "AoE Sentry MCP profile"

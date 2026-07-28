@@ -2,7 +2,7 @@
 set -euo pipefail
 
 usage() {
-  printf 'Usage: %s codex|aoe [codex|aoe ...]\n' "${0##*/}" >&2
+  printf 'Usage: %s codex|aoe|codex-acp [tool ...]\n' "${0##*/}" >&2
 }
 
 if [ "$#" -eq 0 ]; then
@@ -11,6 +11,7 @@ if [ "$#" -eq 0 ]; then
 fi
 
 temporary_dir="$(mktemp -d)"
+script_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 cleanup() {
   rm -rf -- "$temporary_dir"
 }
@@ -55,6 +56,9 @@ for requested_tool in "$@"; do
       ;;
     aoe)
       install_tool aoe "https://raw.githubusercontent.com/agent-of-empires/agent-of-empires/main/scripts/install.sh"
+      ;;
+    codex-acp)
+      "${script_dir}/../codex-acp/install.sh"
       ;;
     *)
       printf 'Unknown tool: %s\n' "$requested_tool" >&2

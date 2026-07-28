@@ -28,6 +28,8 @@ let
   aoeOwnConfig = "${config.xdg.configHome}/agent-of-empires/profiles/own/config.toml";
   aoeSentryConfig = "${config.xdg.configHome}/agent-of-empires/profiles/sentry/config.toml";
   legacySentryMcp = ''{ url = "https://mcp.sentry.dev/mcp?skills=inspect", enabled = true }'';
+  legacyNotionMcp = ''{ url = "https://mcp.notion.com/mcp", enabled = false, default_tools_approval_mode = "writes" }'';
+  legacyOwnContextMcp = ''{ url = "https://mcp.own.casa/mcp", enabled = false, scopes = [ "openid", "offline_access", "context.read", "context.validate", "grants.read", "grants.write" ], oauth = { client_id = "C6yemhZP2rhCPMZIuNTHKnd2hu6cyMXB" } }'';
   managedAgentConfigs = pkgs.writeShellApplication {
     name = "reconcile-managed-agent-configs";
     runtimeInputs = [ reconciler ];
@@ -36,7 +38,9 @@ let
         --source ${codexTemplate} \
         --target ${codexConfig} \
         --lock ${codexConfig}.lock \
-        --delete-if-equals mcp_servers.sentry ${lib.escapeShellArg legacySentryMcp}
+        --delete-if-equals mcp_servers.sentry ${lib.escapeShellArg legacySentryMcp} \
+        --delete-if-equals mcp_servers.notion ${lib.escapeShellArg legacyNotionMcp} \
+        --delete-if-equals mcp_servers.own-context ${lib.escapeShellArg legacyOwnContextMcp}
 
       reconcile-agent-config \
         --source ${codexSeoTemplate} \
@@ -89,6 +93,11 @@ in
 
   xdg.configFile."agent-of-empires/profiles/sentry/mcp.json" = {
     source = ../../../setup/aoe-remote/profiles/sentry/mcp.json;
+    force = true;
+  };
+
+  xdg.configFile."agent-of-empires/profiles/own/mcp.json" = {
+    source = ../../../setup/aoe-remote/profiles/own/mcp.json;
     force = true;
   };
 

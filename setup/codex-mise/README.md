@@ -33,5 +33,5 @@ CODEX_THREAD_ID=test zsh -c 'command -v node; node -v; command -v npm; npm -v'
 ```
 
 For regular Agent of Empires Codex sessions, this covers commands that Codex
-runs after it starts. It does not configure AOE cockpit startup; for cockpit,
-use `AOE_COCKPIT_NODE` or start `aoe serve` with the mise shims on `PATH`.
+runs after it starts. It does not configure ACP startup; for structured
+sessions, use `AOE_ACP_NODE` or start `aoe serve` with the mise shims on `PATH`.

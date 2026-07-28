@@ -6,12 +6,20 @@ handle user-installed tools and mutable application configuration.
 
 ## Install only missing user tools
 
-The installer downloads each official installer to a temporary directory,
-shows its SHA-256 digest, opens it in `$PAGER`, and requires an exact
-confirmation before execution. Existing installations are preserved.
+The Codex and AoE installers download each official installer to a temporary
+directory, show its SHA-256 digest, open it in `$PAGER`, and require an exact
+confirmation before execution. The delegated `codex-acp` installer uses npm
+with an explicit `~/.local` prefix. Existing installations are preserved.
 
 ```bash
-setup/aoe-remote/install-user-tools.sh codex aoe
+setup/aoe-remote/install-user-tools.sh codex aoe codex-acp
+```
+
+`codex-acp` requires Node.js 20 or newer. Update it intentionally, outside
+Home Manager activation, with:
+
+```bash
+setup/codex-acp/install.sh --update
 ```
 
 Authenticate separately using supported interactive flows:
@@ -49,10 +57,11 @@ The Codex baseline uses `workspace-write`, interactive `on-request` approvals,
 and `approvals_reviewer = "auto_review"`. Auto-review changes who reviews an
 eligible escalation; it does not disable the sandbox or grant full host access.
 
-The AoE baseline keeps terminal/tmux sessions, makes Codex the default tool,
-keeps worktrees opt-in for each new session, preserves explicit conversation
-resume, and keeps YOLO disabled. ACP/structured sessions are intentionally
-omitted.
+The AoE baseline keeps terminal/tmux sessions as the default, makes Codex the
+default tool, keeps worktrees opt-in for each new session, preserves explicit
+conversation resume, and keeps YOLO disabled. It offers ACP structured view as
+an explicit session choice. Dashboard-managed ACP adapter installation remains
+disabled; install or update adapters through the reviewed portable installer.
 
 The default Codex configuration keeps the official Sentry plugin disabled.
 The `sentry` profile enables the complete plugin, including its upstream skills
@@ -74,19 +83,23 @@ invocation policy shipped with each skill. The deprecated standalone
 `sentry-fix-issues` installation and its custom metadata are removed during the
 migration.
 
-The base configuration also declares Notion's official hosted MCP endpoint but
-keeps it disabled. The `own` profile enables it and requires Codex to describe
-each proposed Notion write, ask for explicit confirmation, and wait for a later
-user message before proceeding. The original request does not count as that
-confirmation. Codex still uses the configured automatic reviewer after the
-user confirms; the text-confirmation instruction is a behavioral safeguard,
-not a separate enforcement boundary.
+The base configuration does not declare Notion or `own-context`. The `own`
+Codex profile contains their complete configuration, while the matching AoE
+profile supplies both transports to ACP sessions through its local `mcp.json`.
+Global guidance applies the Notion safeguard only when Notion tools are
+available: Codex must describe each proposed write, ask for explicit
+confirmation, and wait for a later user message. The original request does not
+count as that confirmation. Codex still uses the configured automatic reviewer
+after confirmation; the text-confirmation instruction is a behavioral
+safeguard, not a separate enforcement boundary.
 
-Authenticate Notion once on each machine. The one-off override makes the
-otherwise disabled server available only for the login command:
+Authenticate Notion once on each machine. Codex MCP management commands do not
+load named profile overlays, so the one-off override supplies the same server
+name and URL used by both OWN modes:
 
 ```bash
-codex -c 'mcp_servers.notion.enabled=true' mcp login notion
+codex -c 'mcp_servers.notion.url="https://mcp.notion.com/mcp"' \
+  mcp login notion
 ```
 
 Notion requires interactive user OAuth; no Notion API token belongs in this
@@ -113,11 +126,24 @@ In a separate `remote-dev` shell, use the same port for login:
 
 ```bash
 codex -c 'mcp_oauth_callback_port=1456' \
-  -c 'mcp_servers.notion.enabled=true' mcp login notion
+  -c 'mcp_servers.notion.url="https://mcp.notion.com/mcp"' \
+  mcp login notion
 ```
 
 Open only the newly printed authorization URL. A callback from an older login
 has a different OAuth state and aborts the current listener.
+
+Existing `own-context` credentials are also reused by server name and URL. If
+they need to be recreated, supply its complete OAuth metadata to the management
+command:
+
+```bash
+codex \
+  -c 'mcp_servers.own-context.url="https://mcp.own.casa/mcp"' \
+  -c 'mcp_servers.own-context.scopes=["openid","offline_access","context.read","context.validate","grants.read","grants.write"]' \
+  -c 'mcp_servers.own-context.oauth.client_id="C6yemhZP2rhCPMZIuNTHKnd2hu6cyMXB"' \
+  mcp login own-context
+```
 
 Three optional profiles are installed:
 
@@ -131,15 +157,27 @@ Three optional profiles are installed:
 
 AoE profiles named `seo`, `own`, and `sentry` launch Codex with those profile
 flags in tmux mode. Use `aoe -p seo`, `aoe -p own`, or `aoe -p sentry`; each AoE
-profile has its own session workspace. The Sentry AoE profile also supplies the
-hosted MCP through its profile-local `mcp.json` for ACP sessions. ACP does not
-currently activate the Codex profile's plugin skills.
+profile has its own session workspace. The OWN and Sentry AoE profiles also
+supply their hosted MCP transports through profile-local `mcp.json` files for
+ACP sessions. ACP does not activate Codex named-profile skills or plugins.
+
+Verify the ACP runtime, then create an explicit structured OWN session with:
+
+```bash
+aoe acp doctor --json
+aoe add -p own --structured-view --tool codex --launch
+```
+
+The new-session UI exposes the same structured-view choice. Omitting it keeps
+the normal tmux workflow.
 
 On the NixOS `remote-dev` host, Home Manager installs
 `reconcile-managed-agent-configs`. Activation and the Sentry plugin installer
 both use this command so Codex's native plugin installation cannot leave the
 plugin enabled in the default profile. The reconciler removes known legacy
 values only when they still exactly match the old dotfiles-managed values.
+Home Manager configures the dashboard's Node runtime but never runs npm or
+changes the installed `codex-acp` version during activation.
 
 ## Install skills and documentation access
 

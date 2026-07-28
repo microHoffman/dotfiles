@@ -28,15 +28,6 @@ new_session_attach_mode = "tmux"
 
 [worktree]
 enabled = false
-
-[mcp_servers.own-context]
-url = "https://mcp.own.casa/mcp"
-enabled = false
-
-[mcp_servers.notion]
-url = "https://mcp.notion.com/mcp"
-enabled = false
-default_tools_approval_mode = "writes"
 TOML
 
 cat >"$target_file" <<'TOML'
@@ -60,6 +51,26 @@ enabled = true
 url = "https://mcp.example.com/mcp"
 enabled = true
 
+[mcp_servers.own-context]
+url = "https://mcp.own.casa/mcp"
+enabled = false
+scopes = [
+  "openid",
+  "offline_access",
+  "context.read",
+  "context.validate",
+  "grants.read",
+  "grants.write",
+]
+
+[mcp_servers.own-context.oauth]
+client_id = "C6yemhZP2rhCPMZIuNTHKnd2hu6cyMXB"
+
+[mcp_servers.notion]
+url = "https://mcp.notion.com/mcp"
+enabled = false
+default_tools_approval_mode = "writes"
+
 [session.custom_agents]
 codex-sentry = "codex --config mcp_servers.sentry.enabled=true"
 custom = "custom-agent"
@@ -75,6 +86,10 @@ chmod 0640 "$target_file"
 delete_legacy_values=(
   --delete-if-equals mcp_servers.sentry \
     '{ url = "https://mcp.sentry.dev/mcp?skills=inspect", enabled = true }'
+  --delete-if-equals mcp_servers.notion \
+    '{ url = "https://mcp.notion.com/mcp", enabled = false, default_tools_approval_mode = "writes" }'
+  --delete-if-equals mcp_servers.own-context \
+    '{ url = "https://mcp.own.casa/mcp", enabled = false, scopes = [ "openid", "offline_access", "context.read", "context.validate", "grants.read", "grants.write" ], oauth = { client_id = "C6yemhZP2rhCPMZIuNTHKnd2hu6cyMXB" } }'
   --delete-if-equals session.custom_agents.codex-sentry \
     '"codex --config mcp_servers.sentry.enabled=true"'
   --delete-if-equals session.agent_detect_as.codex-sentry '"codex"'
@@ -101,10 +116,8 @@ assert data["session"]["unread_indicator"] is True
 assert data["worktree"]["enabled"] is False
 assert "sentry" not in data["mcp_servers"]
 assert data["mcp_servers"]["custom"]["enabled"] is True
-assert data["mcp_servers"]["own-context"]["enabled"] is False
-assert data["mcp_servers"]["notion"]["url"] == "https://mcp.notion.com/mcp"
-assert data["mcp_servers"]["notion"]["enabled"] is False
-assert data["mcp_servers"]["notion"]["default_tools_approval_mode"] == "writes"
+assert "own-context" not in data["mcp_servers"]
+assert "notion" not in data["mcp_servers"]
 assert "codex-sentry" not in data["session"]["custom_agents"]
 assert data["session"]["custom_agents"]["custom"] == "custom-agent"
 assert "agent_detect_as" not in data["session"]
@@ -132,6 +145,15 @@ cat >"$modified_target" <<'TOML'
 url = "https://self-hosted.example.com/mcp"
 enabled = true
 
+[mcp_servers.notion]
+url = "https://mcp.notion.com/mcp"
+enabled = true
+default_tools_approval_mode = "prompt"
+
+[mcp_servers.own-context]
+url = "https://mcp.own.casa/custom"
+enabled = false
+
 [session.custom_agents]
 codex-sentry = "custom-codex-sentry"
 
@@ -150,6 +172,9 @@ import tomllib
 
 data = tomllib.loads(pathlib.Path(sys.argv[1]).read_text())
 assert data["mcp_servers"]["sentry"]["url"] == "https://self-hosted.example.com/mcp"
+assert data["mcp_servers"]["notion"]["enabled"] is True
+assert data["mcp_servers"]["notion"]["default_tools_approval_mode"] == "prompt"
+assert data["mcp_servers"]["own-context"]["url"] == "https://mcp.own.casa/custom"
 assert data["session"]["custom_agents"]["codex-sentry"] == "custom-codex-sentry"
 assert data["session"]["agent_detect_as"]["codex-sentry"] == "custom-detector"
 PY

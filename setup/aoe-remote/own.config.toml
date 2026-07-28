@@ -1,19 +1,19 @@
-developer_instructions = '''
-Before any Notion MCP tool call that can create, update, move, archive, delete,
-comment on, or otherwise modify Notion content:
-
-1. Describe the exact write, its target, and its expected effect.
-2. Ask for explicit confirmation and wait for a later user message before
-   calling the tool. The original request does not count as confirmation.
-3. Treat confirmation as valid only for the described write or batch. Do not
-   reuse it for a different write, and do not treat ambiguous or standing
-   approval as confirmation.
-
-Read-only Notion MCP calls do not require this extra confirmation.
-'''
-
 [mcp_servers.notion]
+url = "https://mcp.notion.com/mcp"
 enabled = true
+default_tools_approval_mode = "writes"
 
 [mcp_servers.own-context]
+url = "https://mcp.own.casa/mcp"
 enabled = true
+scopes = [
+  "openid",
+  "offline_access",
+  "context.read",
+  "context.validate",
+  "grants.read",
+  "grants.write",
+]
+
+[mcp_servers.own-context.oauth]
+client_id = "C6yemhZP2rhCPMZIuNTHKnd2hu6cyMXB"

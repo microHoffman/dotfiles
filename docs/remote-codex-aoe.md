@@ -83,16 +83,19 @@ Tailscale, OpenSSH, Git, tmux, Node.js, Docker, and mise are declared by NixOS
 or Home Manager. Add or remove persistent general CLI tools in
 `nix/modules/home/dev-tools.nix`.
 
-Codex and AoE are fast-moving user tools. Install only missing binaries with:
+Codex, AoE, and the Codex ACP adapter are fast-moving user tools. Install only
+missing binaries with:
 
 ```bash
 cd ~/dotfiles
-setup/aoe-remote/install-user-tools.sh codex aoe
+setup/aoe-remote/install-user-tools.sh codex aoe codex-acp
 ```
 
-The script downloads each official installer to a temporary directory, displays
-its SHA-256 digest, opens it for review, and requires an exact confirmation.
-It preserves any existing installation rather than changing provenance.
+For Codex and AoE, the script downloads each official installer to a temporary
+directory, displays its SHA-256 digest, opens it for review, and requires an
+exact confirmation. The delegated `codex-acp` installer verifies Node.js 20+
+and installs the npm package under `~/.local`. All three preserve existing
+installations rather than changing provenance.
 
 Seed application configuration before the first launch:
 
@@ -129,12 +132,13 @@ The plugin preserves Sentry's own per-skill invocation policies. The deprecated
 standalone `sentry-fix-issues` skill and the dotfiles-maintained explicit-only
 wrapper are removed.
 
-The default configuration also keeps Notion MCP disabled. The `own` profile
-enables Notion alongside `own-context` and requires an additional explicit chat
-confirmation before each Notion write. The confirmation must arrive in a later
-user message after Codex describes the exact target and effect; an initial
-request or standing approval is insufficient. Read-only Notion operations do
-not need this extra exchange.
+The default configuration does not declare Notion or `own-context`. The `own`
+Codex profile contains their complete definitions, and the AoE OWN profile
+supplies the same transports to structured sessions. Global guidance requires
+an additional explicit chat confirmation whenever Notion write tools are
+available. The confirmation must arrive in a later user message after Codex
+describes the exact target and effect; an initial request or standing approval
+is insufficient. Read-only Notion operations do not need this extra exchange.
 
 On a local workstation, forward the fixed OAuth callback port to `remote-dev`:
 
@@ -143,10 +147,12 @@ ssh -N -L 1455:127.0.0.1:1455 microhoffman@remote-dev
 ```
 
 With that tunnel running, authenticate on `remote-dev` and complete the printed
-URL in the local browser:
+URL in the local browser. The explicit URL is required because Codex MCP
+management commands do not load named profile overlays:
 
 ```bash
-codex -c 'mcp_servers.notion.enabled=true' mcp login notion
+codex -c 'mcp_servers.notion.url="https://mcp.notion.com/mcp"' \
+  mcp login notion
 ```
 
 Select the intended Notion workspace during OAuth. Credentials are stored as
@@ -164,11 +170,23 @@ In a separate `remote-dev` shell, use the same port for login:
 
 ```bash
 codex -c 'mcp_oauth_callback_port=1456' \
-  -c 'mcp_servers.notion.enabled=true' mcp login notion
+  -c 'mcp_servers.notion.url="https://mcp.notion.com/mcp"' \
+  mcp login notion
 ```
 
 Use only the new authorization URL; a callback from an earlier attempt carries
 the wrong OAuth state and aborts the current listener.
+
+The existing `own-context` OAuth record is reused by its name and URL. If it
+must be recreated, run:
+
+```bash
+codex \
+  -c 'mcp_servers.own-context.url="https://mcp.own.casa/mcp"' \
+  -c 'mcp_servers.own-context.scopes=["openid","offline_access","context.read","context.validate","grants.read","grants.write"]' \
+  -c 'mcp_servers.own-context.oauth.client_id="C6yemhZP2rhCPMZIuNTHKnd2hu6cyMXB"' \
+  mcp login own-context
+```
 
 Install global skills, repository-scoped skills, and GitHits using the commands
 in [`setup/aoe-remote/README.md`](../setup/aoe-remote/README.md). The `seo`,
@@ -180,8 +198,9 @@ aoe -p own
 aoe -p sentry
 ```
 
-Sentry tmux sessions receive the complete plugin. ACP sessions currently
-receive the profile-local Sentry MCP but not the Codex profile's plugin skills.
+OWN and Sentry ACP sessions receive their profile-local MCP transports. ACP
+does not load Codex named profiles, so SEO and Sentry profile skills/plugins
+remain specific to terminal sessions.
 
 ## Phase 3: OpenSSH over Tailscale
 
@@ -333,7 +352,8 @@ sudo nixos-rebuild switch --flake ./nix#remote-dev
 The generated user unit runs `aoe serve --remote --host 127.0.0.1 --port 8080`
 in the foreground with `Restart=on-failure`. It does not use `--daemon`.
 `KillMode=process` prevents a dashboard stop from killing separately managed
-tmux processes.
+tmux processes. `AOE_ACP_NODE` points structured sessions at the immutable Home
+Manager Node.js 24 executable, while `~/.local/bin` provides `codex-acp`.
 
 ## Normal session workflow
 
@@ -388,6 +408,37 @@ worktree and merged branch. Restore during that window with
 `aoe session restore fix-refresh-token`. Avoid `--force` and `--purge` during
 normal operation; use an explicit purge only when immediate irreversible cleanup
 is worth losing the recovery window.
+
+## Structured session workflow
+
+Structured view is opt-in; normal tmux sessions remain the default. Confirm the
+runtime first:
+
+```bash
+aoe acp doctor --json
+```
+
+Create a Codex structured session under the OWN profile from the UI toggle or
+explicitly:
+
+```bash
+aoe add /path/to/example \
+  --profile own \
+  --structured-view \
+  --tool codex \
+  --launch
+```
+
+The adapter loads the normal Codex base configuration and receives Notion plus
+`own-context` from the AoE profile's `mcp.json`. Existing OAuth records are
+reused. AoE renders prompts, approvals, and tool calls as structured cards.
+Notion writes still require the later-message confirmation described above.
+
+The dashboard cannot install adapters because
+`acp.allow_agent_install = false`. A missing or incompatible adapter produces a
+diagnostic instead. Install it explicitly with `setup/codex-acp/install.sh`, or
+update deliberately with `setup/codex-acp/install.sh --update`, then restart the
+worker or dashboard.
 
 ## Dashboard and phone operations
 
@@ -493,9 +544,10 @@ declarative dashboard gate for durable shutdown.
 First inspect installation provenance:
 
 ```bash
-command -v codex aoe
+command -v codex aoe codex-acp
 codex --version
 aoe --version
+codex-acp --version
 ```
 
 For an AoE official release installation:
@@ -509,6 +561,17 @@ systemctl --user start aoe-dashboard
 Managed tmux sessions should survive because the unit uses `KillMode=process`;
 verify before and after. Update Codex using the same official installation
 method originally used. Do not mix standalone, npm, Cargo, and Nix provenance.
+
+Update the ACP adapter separately and explicitly:
+
+```bash
+setup/codex-acp/install.sh --update
+systemctl --user restart aoe-dashboard
+aoe acp doctor --json
+```
+
+NixOS/Home Manager activation configures the service and profile files but
+never performs this npm installation or changes the installed adapter version.
 
 ## Installing future tooling
 
@@ -549,13 +612,16 @@ On the host:
 Then create a disposable Git repository and AoE worktree. Verify:
 
 1. Codex runs in a normal terminal session with sandboxing and auto-review.
-2. SSH/browser disconnect and reconnect reach the same process.
-3. Dashboard stop/start preserves the tmux session.
-4. `codex resume` recovers the conversation after a deliberate stop.
-5. Another device can open the redacted Funnel hostname and authenticate.
-6. Public IPv4 and IPv6 connections to TCP 8080 fail.
-7. Funnel can be disabled immediately.
-8. Logout persistence works. Reboot testing requires separate approval.
+2. An OWN structured session exposes Notion and `own-context`, renders tool
+   cards, and preserves its transcript.
+3. A Notion write waits for a later user confirmation.
+4. SSH/browser disconnect and reconnect reach the same process.
+5. Dashboard stop/start preserves the tmux session.
+6. `codex resume` recovers the conversation after a deliberate stop.
+7. Another device can open the redacted Funnel hostname and authenticate.
+8. Public IPv4 and IPv6 connections to TCP 8080 fail.
+9. Funnel can be disabled immediately.
+10. Logout persistence works. Reboot testing requires separate approval.
 
 After every acceptance check passes, permanently remove only the known
 disposable session when immediate cleanup is intended. Show the exact target and
@@ -575,6 +641,7 @@ Repository-managed:
 ```text
 ~/dotfiles/nix/modules/home/aoe-dashboard.nix
 ~/dotfiles/nix/shared/vars.nix
+~/dotfiles/setup/codex-acp/
 ~/dotfiles/setup/aoe-remote/
 ~/dotfiles/scripts/remote-dev/verify-aoe.sh
 ~/dotfiles/docs/remote-codex-aoe.md

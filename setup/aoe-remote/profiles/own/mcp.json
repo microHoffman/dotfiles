@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "notion": {
+      "type": "http",
+      "url": "https://mcp.notion.com/mcp"
+    },
+    "own-context": {
+      "type": "http",
+      "url": "https://mcp.own.casa/mcp"
+    }
+  }
+}

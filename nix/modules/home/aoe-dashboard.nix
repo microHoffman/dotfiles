@@ -106,6 +106,7 @@ in
         Service = {
           Type = "simple";
           Environment = [
+            "AOE_ACP_NODE=${lib.getExe pkgs.nodejs_24}"
             "PATH=${servicePath}"
             "SSH_AUTH_SOCK=%t/ssh-agent"
             "XDG_CONFIG_HOME=${config.xdg.configHome}"
