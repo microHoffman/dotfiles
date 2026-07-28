@@ -98,6 +98,23 @@ raise SystemExit(1)
 PY
 }
 
+check_toml_string_contains() {
+  config_file="$1"
+  key_path="$2"
+  expected="$3"
+
+  python3 - "$config_file" "$key_path" "$expected" <<'PY'
+import pathlib
+import sys
+import tomllib
+
+value = tomllib.loads(pathlib.Path(sys.argv[1]).read_text())
+for key in sys.argv[2].split("."):
+    value = value[key]
+raise SystemExit(0 if isinstance(value, str) and sys.argv[3] in value else 1)
+PY
+}
+
 check_codex_mcp() {
   server_name="$1"
   expected_enabled="$2"
@@ -259,6 +276,11 @@ check "Codex Sentry plugin is disabled by default" check_codex_plugin \
   sentry@sentry-plugin-marketplace false
 check "Codex Sentry MCP is absent by default" check_codex_mcp_absent \
   sentry
+check "Codex Notion MCP is disabled by default" check_codex_mcp \
+  notion false "https://mcp.notion.com/mcp"
+check "Codex Notion MCP prompts before writes" check_toml_value \
+  "$codex_config" "mcp_servers.notion.default_tools_approval_mode" string \
+  writes
 check "Codex OWN MCP is disabled by default" check_codex_mcp \
   own-context false
 check "Codex SEO profile exists" test -f "$codex_home/seo.config.toml"
@@ -270,6 +292,12 @@ check "Codex SEO profile enables Nix native libraries" check_toml_value \
   "/run/current-system/sw/share/nix-ld/lib"
 check "Codex OWN profile enables OWN MCP" check_toml_value \
   "$codex_home/own.config.toml" "mcp_servers.own-context.enabled" bool true
+check "Codex OWN profile enables Notion MCP" check_toml_value \
+  "$codex_home/own.config.toml" "mcp_servers.notion.enabled" bool true
+check "Codex OWN profile requires explicit text confirmation for Notion writes" \
+  check_toml_string_contains "$codex_home/own.config.toml" \
+  developer_instructions \
+  "The original request does not count as confirmation."
 check "Codex Sentry profile enables the official plugin" check_toml_value \
   "$codex_home/sentry.config.toml" \
   "plugins.sentry@sentry-plugin-marketplace.enabled" bool true

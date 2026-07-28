@@ -32,6 +32,11 @@ enabled = false
 [mcp_servers.own-context]
 url = "https://mcp.own.casa/mcp"
 enabled = false
+
+[mcp_servers.notion]
+url = "https://mcp.notion.com/mcp"
+enabled = false
+default_tools_approval_mode = "writes"
 TOML
 
 cat >"$target_file" <<'TOML'
@@ -97,6 +102,9 @@ assert data["worktree"]["enabled"] is False
 assert "sentry" not in data["mcp_servers"]
 assert data["mcp_servers"]["custom"]["enabled"] is True
 assert data["mcp_servers"]["own-context"]["enabled"] is False
+assert data["mcp_servers"]["notion"]["url"] == "https://mcp.notion.com/mcp"
+assert data["mcp_servers"]["notion"]["enabled"] is False
+assert data["mcp_servers"]["notion"]["default_tools_approval_mode"] == "writes"
 assert "codex-sentry" not in data["session"]["custom_agents"]
 assert data["session"]["custom_agents"]["custom"] == "custom-agent"
 assert "agent_detect_as" not in data["session"]

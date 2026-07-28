@@ -74,12 +74,58 @@ invocation policy shipped with each skill. The deprecated standalone
 `sentry-fix-issues` installation and its custom metadata are removed during the
 migration.
 
+The base configuration also declares Notion's official hosted MCP endpoint but
+keeps it disabled. The `own` profile enables it and requires Codex to describe
+each proposed Notion write, ask for explicit confirmation, and wait for a later
+user message before proceeding. The original request does not count as that
+confirmation. Codex still uses the configured automatic reviewer after the
+user confirms; the text-confirmation instruction is a behavioral safeguard,
+not a separate enforcement boundary.
+
+Authenticate Notion once on each machine. The one-off override makes the
+otherwise disabled server available only for the login command:
+
+```bash
+codex -c 'mcp_servers.notion.enabled=true' mcp login notion
+```
+
+Notion requires interactive user OAuth; no Notion API token belongs in this
+repository. On a headless `remote-dev` session, first forward the fixed callback
+port from the workstation where the authorization page will open:
+
+```bash
+ssh -N -L 1455:127.0.0.1:1455 microhoffman@remote-dev
+```
+
+Then run the login command on `remote-dev`, open the printed URL locally, and
+authorize the intended Notion workspace. The OAuth credentials remain
+machine-local.
+
+If login exits with `Authorization state not found`, close any old Notion OAuth
+or `127.0.0.1:1455` browser tabs and stop the old tunnel. On the workstation,
+keep a fresh one-off callback port forwarded:
+
+```bash
+ssh -N -L 1456:127.0.0.1:1456 microhoffman@remote-dev
+```
+
+In a separate `remote-dev` shell, use the same port for login:
+
+```bash
+codex -c 'mcp_oauth_callback_port=1456' \
+  -c 'mcp_servers.notion.enabled=true' mcp login notion
+```
+
+Open only the newly printed authorization URL. A callback from an older login
+has a different OAuth state and aborts the current listener.
+
 Three optional profiles are installed:
 
 - `codex --profile seo` enables the local Codex SEO suite, except integrations
   that require separately configured DataForSEO, Firecrawl, Google, or Gemini
   credentials.
-- `codex --profile own` enables the hosted `own-context` MCP server.
+- `codex --profile own` enables the hosted `own-context` and Notion MCP
+  servers.
 - `codex --profile sentry` enables Sentry's official Codex plugin, all of its
   bundled skills, and its hosted MCP server.
 

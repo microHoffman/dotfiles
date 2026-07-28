@@ -58,6 +58,11 @@ enabled = false
 [mcp_servers.openaiDeveloperDocs]
 url = "https://developers.openai.com/mcp"
 
+[mcp_servers.notion]
+url = "https://mcp.notion.com/mcp"
+enabled = false
+default_tools_approval_mode = "writes"
+
 [mcp_servers.own-context]
 url = "https://mcp.own.casa/mcp"
 enabled = false

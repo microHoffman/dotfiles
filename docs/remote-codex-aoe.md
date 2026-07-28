@@ -129,6 +129,47 @@ The plugin preserves Sentry's own per-skill invocation policies. The deprecated
 standalone `sentry-fix-issues` skill and the dotfiles-maintained explicit-only
 wrapper are removed.
 
+The default configuration also keeps Notion MCP disabled. The `own` profile
+enables Notion alongside `own-context` and requires an additional explicit chat
+confirmation before each Notion write. The confirmation must arrive in a later
+user message after Codex describes the exact target and effect; an initial
+request or standing approval is insufficient. Read-only Notion operations do
+not need this extra exchange.
+
+On a local workstation, forward the fixed OAuth callback port to `remote-dev`:
+
+```bash
+ssh -N -L 1455:127.0.0.1:1455 microhoffman@remote-dev
+```
+
+With that tunnel running, authenticate on `remote-dev` and complete the printed
+URL in the local browser:
+
+```bash
+codex -c 'mcp_servers.notion.enabled=true' mcp login notion
+```
+
+Select the intended Notion workspace during OAuth. Credentials are stored as
+machine-local Codex state and must never be copied into this repository.
+
+If login exits with `Authorization state not found`, close any old Notion OAuth
+or `127.0.0.1:1455` browser tabs and stop the old tunnel. On the workstation,
+keep a fresh one-off callback port forwarded:
+
+```bash
+ssh -N -L 1456:127.0.0.1:1456 microhoffman@remote-dev
+```
+
+In a separate `remote-dev` shell, use the same port for login:
+
+```bash
+codex -c 'mcp_oauth_callback_port=1456' \
+  -c 'mcp_servers.notion.enabled=true' mcp login notion
+```
+
+Use only the new authorization URL; a callback from an earlier attempt carries
+the wrong OAuth state and aborts the current listener.
+
 Install global skills, repository-scoped skills, and GitHits using the commands
 in [`setup/aoe-remote/README.md`](../setup/aoe-remote/README.md). The `seo`,
 `own`, and `sentry` AoE profiles select their matching Codex profiles:
