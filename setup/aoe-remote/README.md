@@ -60,8 +60,9 @@ eligible escalation; it does not disable the sandbox or grant full host access.
 The AoE baseline keeps terminal/tmux sessions as the default, makes Codex the
 default tool, keeps worktrees opt-in for each new session, preserves explicit
 conversation resume, and keeps YOLO disabled. It offers ACP structured view as
-an explicit session choice. Dashboard-managed ACP adapter installation remains
-disabled; install or update adapters through the reviewed portable installer.
+an explicit session choice with AoE 1.13.1 or newer. Dashboard-managed ACP
+adapter installation remains disabled; install or update adapters through the
+reviewed portable installer.
 
 The default Codex configuration keeps the official Sentry plugin disabled.
 The `sentry` profile enables the complete plugin, including its upstream skills

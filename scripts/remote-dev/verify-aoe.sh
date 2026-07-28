@@ -350,9 +350,13 @@ check "Official Sentry plugin supplies the hosted MCP" check_installed_plugin_mc
   "https://mcp.sentry.dev/mcp?utm_source=plugin"
 check "Deprecated Sentry skill is removed" check_legacy_sentry_skill_removed
 check "AoE uses tmux for new session attachment" check_toml_value \
-  "$aoe_config" "session.new_session_attach_mode" string tmux
+  "$aoe_config" "session.default_attach_mode" string tmux
+check "AoE recognizes the default attachment setting" \
+  aoe settings explain session.default_attach_mode
 check "AoE offers structured view for new sessions" check_toml_value \
   "$aoe_config" "acp.offer_structured_in_new_session" bool true
+check "AoE recognizes the structured-view session setting" \
+  aoe settings explain acp.offer_structured_in_new_session
 check "AoE dashboard-managed ACP installation is disabled" check_toml_value \
   "$aoe_config" "acp.allow_agent_install" bool false
 check "AoE keeps worktrees disabled by default" check_toml_value \

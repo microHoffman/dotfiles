@@ -39,7 +39,6 @@ default_tool = "codex"
 delete_to_trash = true
 merge_hooks_into_selected_agent = true
 mouse_capture = true
-new_session_attach_mode = "tmux"
 restart_wake_message = "wake up: pick up what you were doing"
 session_id_poller_max_threads = 50
 show_tips = true

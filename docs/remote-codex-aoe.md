@@ -411,10 +411,11 @@ is worth losing the recovery window.
 
 ## Structured session workflow
 
-Structured view is opt-in; normal tmux sessions remain the default. Confirm the
-runtime first:
+Structured view is opt-in; normal tmux sessions remain the default. The new
+session dialog toggle requires AoE 1.13.1 or newer. Confirm the runtime first:
 
 ```bash
+aoe --version
 aoe acp doctor --json
 ```
 

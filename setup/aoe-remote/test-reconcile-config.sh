@@ -24,7 +24,7 @@ name = "managed"
 environment = ["TERM", "COLORTERM"]
 
 [session]
-new_session_attach_mode = "tmux"
+default_attach_mode = "tmux"
 
 [worktree]
 enabled = false
@@ -37,7 +37,7 @@ environment = ["TERM"]
 generated = "keep"
 
 [session]
-new_session_attach_mode = "live_send"
+default_attach_mode = "live_send"
 unread_indicator = true
 
 [worktree]
@@ -111,7 +111,7 @@ data = tomllib.loads(path.read_text())
 assert data["name"] == "managed"
 assert data["environment"] == ["TERM", "COLORTERM"]
 assert data["generated"] == "keep"
-assert data["session"]["new_session_attach_mode"] == "tmux"
+assert data["session"]["default_attach_mode"] == "tmux"
 assert data["session"]["unread_indicator"] is True
 assert data["worktree"]["enabled"] is False
 assert "sentry" not in data["mcp_servers"]
