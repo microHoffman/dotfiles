@@ -387,7 +387,8 @@ check "codex-acp is installed" command -v codex-acp
 check "codex-acp reports its version" codex-acp --version
 check "AoE ACP doctor finds Node and Codex" check_codex_acp_doctor
 check "AoE dashboard service is active" systemctl --user is-active aoe-dashboard.service
-check "AoE serve daemon reports healthy" aoe serve --status
+check "AoE serve daemon reports healthy" \
+  env -u AOE_SERVE_PASSPHRASE aoe serve --status
 check "AoE dashboard URL exists (output suppressed)" aoe url
 check "AoE listens only on IPv4 loopback port 8080" check_loopback_8080
 check "cloudflared is absent from PATH" bash -c '! command -v cloudflared >/dev/null 2>&1'
