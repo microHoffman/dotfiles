@@ -156,6 +156,18 @@ This currently provides `shopty-tunnel` for forwarding the local privileged
 HTTP port to the Shopty container on `remote-dev`. It is deliberately not
 installed by the remote host's Home Manager configuration.
 
+### Fedora workstation hibernation
+
+The audited Btrfs/LUKS hibernation configuration, verification tool, controlled
+test recorder, rollback procedure, and local-laptop implementation record live
+in [`setup/fedora-hibernation`](setup/fedora-hibernation).
+
+Run the read-only verification on the Fedora laptop with:
+
+```bash
+sudo setup/fedora-hibernation/verify.sh
+```
+
 ### Remote Codex and Agent of Empires
 
 Portable, non-secret setup files live in

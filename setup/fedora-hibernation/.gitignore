@@ -1,0 +1,11 @@
+# Never commit machine-specific runtime evidence or recovery material.
+backups/
+raw/
+state/
+*.bin
+*.img
+*.log
+journal*.txt
+processes.*
+sessions.*
+*luks*header*
