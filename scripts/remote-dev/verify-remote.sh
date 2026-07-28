@@ -23,6 +23,8 @@ check "docker compose is available" docker compose version
 check "tailscale is available" command -v tailscale
 check "tailscale has a status" tailscale status
 check "direnv is available" command -v direnv
+check "PHP is runnable" php --version
+check "Composer is runnable" composer --version
 check "node is available" command -v node
 check "bun is available" command -v bun
 check "uv is available" command -v uv

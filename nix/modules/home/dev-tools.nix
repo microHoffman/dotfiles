@@ -38,6 +38,8 @@
     ncdu
     nodejs_24
     openssl
+    php
+    phpPackages.composer
     pkg-config
     postgresql
     python3
