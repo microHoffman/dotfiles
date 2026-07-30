@@ -366,6 +366,8 @@ check "AoE uses tmux for new session attachment" check_toml_value \
   "$aoe_config" "session.default_attach_mode" string tmux
 check "AoE recognizes the default attachment setting" \
   aoe settings explain session.default_attach_mode
+check "AoE automatic session recovery is disabled" check_toml_value \
+  "$aoe_config" "session.auto_resume_on_restart" bool false
 check "AoE offers structured view for new sessions" check_toml_value \
   "$aoe_config" "acp.offer_structured_in_new_session" bool true
 check "AoE recognizes the structured-view session setting" \

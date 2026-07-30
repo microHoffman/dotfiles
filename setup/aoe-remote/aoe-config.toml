@@ -29,7 +29,7 @@ volume_ignores_strategy = "anonymous"
 
 [session]
 agent_status_hooks = true
-auto_resume_on_restart = true
+auto_resume_on_restart = false
 auto_stop_idle_secs = 0
 click_action = "live_send"
 confirm_before_quit = false

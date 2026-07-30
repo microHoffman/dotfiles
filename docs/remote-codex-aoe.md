@@ -33,10 +33,10 @@ unless both prerequisite gates are also enabled.
 - Codex uses `workspace-write`, `on-request`, and automatic approval review.
   Auto-review is not YOLO: the sandbox remains active and risky actions can be
   denied.
-- AoE owns session lifecycle and recovery. After a reboot it automatically
-  recovers eligible terminal sessions with stored conversation IDs. It leaves
-  archived, snoozed, trashed, explicitly stopped, structured, and non-resumable
-  sessions alone. There is no separate repository-maintained recovery layer.
+- AoE owns session lifecycle. Automatic session recovery is disabled so a
+  dashboard or host restart cannot relaunch inactive sessions unexpectedly.
+  Existing tmux sessions survive dashboard restarts; after a host reboot,
+  recover only explicitly selected conversations with `codex resume`.
 
 ## Phase 1: audit the actual VPS
 
@@ -487,10 +487,9 @@ the passphrase and restart the active dashboard immediately.
 - **Code persistence:** worktree files and branches persist on disk. Commits and
   remote pushes are the durable recovery boundary.
 
-After reboot, the dashboard returns through systemd and lingering. AoE
-automatically recovers only sessions it considers eligible; sessions you
-archived, snoozed, trashed, or explicitly stopped remain inactive. Inspect the
-result with:
+After reboot, the dashboard returns through systemd and lingering, but automatic
+session recovery remains disabled. All prior sessions stay inactive until you
+explicitly choose one to recover. Inspect the result with:
 
 ```bash
 aoe list
@@ -499,7 +498,7 @@ git -C <main-checkout> worktree list
 git -C <worktree> status
 ```
 
-If an eligible session cannot be recovered, enter its worktree and use:
+To recover a selected conversation, enter its worktree and use:
 
 ```bash
 codex resume --last
