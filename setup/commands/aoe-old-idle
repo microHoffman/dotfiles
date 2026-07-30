@@ -1,0 +1,243 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+usage() {
+  cat <<'EOF'
+Usage: aoe-old-idle [--stop] [AGE]
+
+List idle tmux-backed Agent of Empires sessions whose runtime age is at least
+AGE. AGE defaults to 1d and accepts a positive integer followed by s, m, h, or
+d. A bare integer is interpreted as days. With --stop, preview the matching
+sessions, ask for confirmation, then stop those that are still idle.
+
+Examples:
+  aoe-old-idle
+  aoe-old-idle 2d
+  aoe-old-idle 12h
+  aoe-old-idle --stop
+  aoe-old-idle --stop 2d
+EOF
+}
+
+stop_sessions=false
+age=""
+while (( $# > 0 )); do
+  case "$1" in
+    --stop)
+      stop_sessions=true
+      ;;
+    -h | --help)
+      usage
+      exit 0
+      ;;
+    -*)
+      printf 'aoe-old-idle: unknown option: %s\n' "$1" >&2
+      usage >&2
+      exit 2
+      ;;
+    *)
+      if [[ -n "$age" ]]; then
+        usage >&2
+        exit 2
+      fi
+      age="$1"
+      ;;
+  esac
+  shift
+done
+age="${age:-1d}"
+
+case "$age" in
+  *d)
+    value="${age%d}"
+    multiplier=86400
+    ;;
+  *h)
+    value="${age%h}"
+    multiplier=3600
+    ;;
+  *m)
+    value="${age%m}"
+    multiplier=60
+    ;;
+  *s)
+    value="${age%s}"
+    multiplier=1
+    ;;
+  *)
+    value="$age"
+    multiplier=86400
+    ;;
+esac
+
+if [[ ! "$value" =~ ^[1-9][0-9]*$ ]]; then
+  printf 'aoe-old-idle: AGE must be a positive integer, optionally followed by s, m, h, or d\n' >&2
+  exit 2
+fi
+
+minimum_age_seconds=$((10#$value * multiplier))
+
+for dependency in aoe jq; do
+  if ! command -v "$dependency" >/dev/null 2>&1; then
+    printf 'aoe-old-idle: required command not found: %s\n' "$dependency" >&2
+    exit 1
+  fi
+done
+
+load_candidates() {
+  aoe ps --json |
+    jq \
+      --argjson minimum_age "$minimum_age_seconds" \
+      '
+        [
+          .[]
+          | select(
+              .substrate == "tmux"
+              and .state == "idle"
+              and .age_secs >= $minimum_age
+            )
+        ]
+        | sort_by(.age_secs)
+        | reverse
+      '
+}
+
+write_targets() {
+  local candidates_json="$1"
+  local sessions_json="$2"
+
+  jq -r -n \
+    --argjson candidates "$candidates_json" \
+    --argjson sessions "$sessions_json" \
+    '
+      $candidates[]
+      | . as $candidate
+      | (
+          [
+            $sessions[]
+            | select(.id == $candidate.session)
+          ][0] // null
+        ) as $session
+      | select($session != null)
+      | [$session.profile, $candidate.session]
+      | @tsv
+    '
+}
+
+print_preview() {
+  local candidates_json="$1"
+  local sessions_json="$2"
+  local candidate_count
+
+  candidate_count="$(jq 'length' <<<"$candidates_json")"
+  if (( candidate_count == 0 )); then
+    printf 'No idle tmux sessions have runtime age >= %s.\n' "$age"
+    return
+  fi
+
+  printf '%-10s %-12s %-8s %s\n' "SESSION" "PROFILE" "AGE" "TITLE"
+  jq -r -n \
+    --argjson candidates "$candidates_json" \
+    --argjson sessions "$sessions_json" \
+    '
+      def display_age:
+        if . >= 86400 then "\((. / 86400 | floor))d"
+        elif . >= 3600 then "\((. / 3600 | floor))h"
+        elif . >= 60 then "\((. / 60 | floor))m"
+        else "\(.)s"
+        end;
+
+      $candidates[]
+      | . as $candidate
+      | (
+          [
+            $sessions[]
+            | select(.id == $candidate.session)
+          ][0] // { title: "(unknown)", profile: "(unknown)" }
+        ) as $session
+      | [
+          $candidate.session[0:8],
+          $session.profile,
+          ($candidate.age_secs | display_age),
+          ($session.title | gsub("[\t\r\n]"; " "))
+        ]
+      | @tsv
+    ' |
+    while IFS=$'\t' read -r session_id profile display_age title; do
+      printf '%-10s %-12s %-8s %s\n' "$session_id" "$profile" "$display_age" "$title"
+    done
+
+  printf '\n%d idle tmux session(s) have runtime age >= %s.\n' "$candidate_count" "$age"
+}
+
+candidates_json="$(load_candidates)"
+candidate_count="$(jq 'length' <<<"$candidates_json")"
+if (( candidate_count == 0 )); then
+  print_preview "$candidates_json" '[]'
+  exit 0
+fi
+
+sessions_json="$(aoe list --json --all)"
+print_preview "$candidates_json" "$sessions_json"
+
+if ! "$stop_sessions"; then
+  exit 0
+fi
+
+candidate_file="$(mktemp)"
+cleanup() {
+  rm -f -- "$candidate_file"
+}
+trap cleanup EXIT
+
+write_targets "$candidates_json" "$sessions_json" >"$candidate_file"
+stoppable_count="$(wc -l <"$candidate_file")"
+stoppable_count="${stoppable_count//[[:space:]]/}"
+if (( stoppable_count == 0 )); then
+  printf 'No matching AoE session records could be resolved; nothing stopped.\n' >&2
+  exit 1
+fi
+
+printf '\nStop these %s session(s)? AoE records and resume context will be preserved. [y/N] ' "$stoppable_count"
+if ! IFS= read -r reply; then
+  reply=""
+fi
+case "$reply" in
+  y | Y | yes | YES | Yes) ;;
+  *)
+    printf 'No sessions stopped.\n'
+    exit 0
+    ;;
+esac
+
+# Refresh immediately before stopping so a session that became active while the
+# confirmation prompt was open is excluded.
+candidates_json="$(load_candidates)"
+if [[ "$(jq 'length' <<<"$candidates_json")" == "0" ]]; then
+  printf 'No matching sessions remain idle; nothing stopped.\n'
+  exit 0
+fi
+sessions_json="$(aoe list --json --all)"
+write_targets "$candidates_json" "$sessions_json" >"$candidate_file"
+if [[ ! -s "$candidate_file" ]]; then
+  printf 'No matching sessions remain idle; nothing stopped.\n'
+  exit 0
+fi
+
+stopped=0
+failed=0
+while IFS=$'\t' read -r profile session_id; do
+  [[ -n "$profile" && -n "$session_id" ]] || continue
+  if aoe --profile "$profile" session stop "$session_id"; then
+    stopped=$((stopped + 1))
+  else
+    failed=$((failed + 1))
+  fi
+done <"$candidate_file"
+
+printf 'Stopped %d session(s)' "$stopped"
+if (( failed > 0 )); then
+  printf '; %d failed.\n' "$failed"
+  exit 1
+fi
+printf '.\n'

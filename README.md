@@ -145,6 +145,19 @@ Portable Codex shell setup for mise-managed `node`, `npm`, and `npx` lives in
 setup/codex-mise/install.sh
 ```
 
+### Shared commands
+
+Portable executable commands used on both local and remote machines live in
+[`setup/commands`](setup/commands). Remote-dev installs them through Home
+Manager. On a local workstation, run:
+
+```bash
+setup/commands/install.sh
+```
+
+This currently provides `aoe-old-idle` to preview old idle AoE sessions. Pass
+`--stop` to stop them after previewing and confirming.
+
 ### Local workstation zsh setup
 
 Local-PC-only zsh helpers live in [`setup/zsh`](setup/zsh). Install them from

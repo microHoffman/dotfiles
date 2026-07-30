@@ -66,6 +66,7 @@
       imports = [
         ../../modules/home/agent-config.nix
         ../../modules/home/aoe-dashboard.nix
+        ../../modules/home/commands.nix
         ../../modules/home/dev-tools.nix
         ../../modules/home/foundry.nix
         ../../modules/home/git.nix
