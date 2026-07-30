@@ -24,6 +24,7 @@
     enable = true;
     enableTailscaleOperator = true;
     enableUserLinger = true;
+    port = 42313;
   };
 
   # Add your local client public SSH key before installation.

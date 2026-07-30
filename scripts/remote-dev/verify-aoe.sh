@@ -32,10 +32,23 @@ check_value() {
   fi
 }
 
-check_loopback_8080() {
-  ss -H -ltn | awk '
-    $4 ~ /127[.]0[.]0[.]1:8080$/ { loopback = 1; next }
-    $4 ~ /:8080$/ { public = 1 }
+get_dashboard_port() {
+  systemctl --user show -p Environment --value aoe-dashboard.service \
+    | tr ' ' '\n' \
+    | sed -n 's/^AOE_DASHBOARD_PORT=//p'
+}
+
+check_dashboard_loopback() {
+  port="$(get_dashboard_port)"
+  case "$port" in
+    '' | *[!0-9]*)
+      return 1
+      ;;
+  esac
+
+  ss -H -ltn | awk -v port="$port" '
+    $4 == "127.0.0.1:" port { loopback = 1; next }
+    $4 ~ (":" port "$") { public = 1 }
     END { exit !(loopback && !public) }
   '
 }
@@ -394,7 +407,9 @@ check "AoE dashboard service is active" systemctl --user is-active aoe-dashboard
 check "AoE serve daemon reports healthy" \
   env -u AOE_SERVE_PASSPHRASE aoe serve --status
 check "AoE dashboard URL exists (output suppressed)" aoe url
-check "AoE listens only on IPv4 loopback port 8080" check_loopback_8080
+check_value "AoE dashboard uses configured port" "42313" get_dashboard_port
+check "AoE listens only on its configured IPv4 loopback port" \
+  check_dashboard_loopback
 check "cloudflared is absent from PATH" bash -c '! command -v cloudflared >/dev/null 2>&1'
 check "dashboard environment file exists" test -f "$environment_file"
 check_value "dashboard environment file mode is 0600" "600" stat -c %a "$environment_file"

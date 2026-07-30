@@ -69,7 +69,7 @@ let
         exit 1
       fi
 
-      exec "$aoe_bin" serve --remote --host 127.0.0.1 --port 8080
+      exec "$aoe_bin" serve --remote --host 127.0.0.1 --port ${toString cfg.port}
     '';
   };
 in
@@ -107,6 +107,7 @@ in
           Type = "simple";
           Environment = [
             "AOE_ACP_NODE=${lib.getExe pkgs.nodejs_24}"
+            "AOE_DASHBOARD_PORT=${toString cfg.port}"
             "PATH=${servicePath}"
             "SSH_AUTH_SOCK=%t/ssh-agent"
             "XDG_CONFIG_HOME=${config.xdg.configHome}"

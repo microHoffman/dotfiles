@@ -13,6 +13,7 @@ aoeDashboard = {
   enable = false;
   enableTailscaleOperator = false;
   enableUserLinger = false;
+  port = 42313;
 };
 ```
 
@@ -24,8 +25,8 @@ unless both prerequisite gates are also enabled.
 
 - OpenSSH uses separate laptop and Android Ed25519 keys. Tailscale SSH is off.
 - Public SSH is bootstrap-only. The final firewall accepts SSH on `tailscale0`
-  and never opens TCP 8080.
-- AoE binds explicitly to `127.0.0.1:8080`.
+  and never opens TCP 42313.
+- AoE binds explicitly to `127.0.0.1:42313`.
 - Funnel is the only public transport. The launcher refuses to run when
   `cloudflared` is on `PATH`.
 - AoE remote auth keeps its rotating URL token plus a strong passphrase.
@@ -75,7 +76,7 @@ before running it. Inspect and back up these paths when they exist:
 ```
 
 Also verify the provider firewall and test the VPS public IPv4 and IPv6 from a
-different network. TCP 8080 must fail from outside.
+different network. TCP 42313 must fail from outside.
 
 ## Phase 2: install only missing components
 
@@ -243,7 +244,7 @@ Then run `sudo tailscale set --operator=root`. This does not interrupt SSH.
 Before enabling Funnel, display the resolved values and obtain confirmation:
 
 - Public URL: `https://<machine>.<tailnet>.ts.net` on HTTPS 443.
-- Destination: only `127.0.0.1:8080` on the VPS.
+- Destination: only `127.0.0.1:42313` on the VPS.
 - Public content: the AoE login page. A first login requires both the URL token
   and passphrase.
 - Risk: an authenticated dashboard provides terminal input as `microhoffman`.
@@ -349,7 +350,7 @@ sudo nixos-rebuild dry-activate --flake ./nix#remote-dev
 sudo nixos-rebuild switch --flake ./nix#remote-dev
 ```
 
-The generated user unit runs `aoe serve --remote --host 127.0.0.1 --port 8080`
+The generated user unit runs `aoe serve --remote --host 127.0.0.1 --port 42313`
 in the foreground with `Restart=on-failure`. It does not use `--daemon`.
 `KillMode=process` prevents a dashboard stop from killing separately managed
 tmux processes. `AOE_ACP_NODE` points structured sessions at the immutable Home
@@ -620,7 +621,7 @@ Then create a disposable Git repository and AoE worktree. Verify:
 5. Dashboard stop/start preserves the tmux session.
 6. `codex resume` recovers the conversation after a deliberate stop.
 7. Another device can open the redacted Funnel hostname and authenticate.
-8. Public IPv4 and IPv6 connections to TCP 8080 fail.
+8. Public IPv4 and IPv6 connections to TCP 42313 fail.
 9. Funnel can be disabled immediately.
 10. Logout persistence works. Reboot testing requires separate approval.
 
