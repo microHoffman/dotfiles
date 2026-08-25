@@ -84,15 +84,32 @@ invocation policy shipped with each skill. The deprecated standalone
 `sentry-fix-issues` installation and its custom metadata are removed during the
 migration.
 
-The base configuration does not declare Notion or `own-context`. The `own`
-Codex profile contains their complete configuration, while the matching AoE
-profile supplies both transports to ACP sessions through its local `mcp.json`.
-Global guidance applies the Notion safeguard only when Notion tools are
-available: Codex must describe each proposed write, ask for explicit
-confirmation, and wait for a later user message. The original request does not
-count as that confirmation. Codex still uses the configured automatic reviewer
-after confirmation; the text-confirmation instruction is a behavioral
-safeguard, not a separate enforcement boundary.
+The base configuration does not declare Figma, Notion, or `own-context`. The
+`own` Codex profile contains their complete configuration, while the matching
+AoE profile supplies all three transports to ACP sessions through its local
+`mcp.json`. Figma and Notion use `writes` approval mode in the Codex profile.
+Because AoE's transport file cannot carry that Codex-specific policy, global
+guidance applies matching safeguards only when their tools are available:
+Codex must describe each proposed write, ask for explicit confirmation, and
+wait for a later user message. The original request does not count as that
+confirmation. Codex still uses the configured automatic reviewer after
+confirmation; the text-confirmation instruction is a behavioral safeguard, not
+a separate enforcement boundary.
+
+Authenticate Figma once on each machine. Codex MCP management commands do not
+load named profile overlays, so the one-off override supplies the same server
+name and URL used by both OWN modes:
+
+```bash
+codex -c 'mcp_servers.figma.url="https://mcp.figma.com/mcp"' \
+  mcp login figma
+```
+
+Figma requires interactive user OAuth; no Figma token belongs in this
+repository. Complete the printed authorization URL in a browser and keep the
+OAuth credentials machine-local. On a headless host, use the callback-port SSH
+tunnel described below for Notion; the same tunnel and fresh-port recovery
+procedure apply to Figma.
 
 Authenticate Notion once on each machine. Codex MCP management commands do not
 load named profile overlays, so the one-off override supplies the same server
@@ -115,9 +132,9 @@ Then run the login command on `remote-dev`, open the printed URL locally, and
 authorize the intended Notion workspace. The OAuth credentials remain
 machine-local.
 
-If login exits with `Authorization state not found`, close any old Notion OAuth
-or `127.0.0.1:1455` browser tabs and stop the old tunnel. On the workstation,
-keep a fresh one-off callback port forwarded:
+If login exits with `Authorization state not found`, close any old Figma,
+Notion, or `127.0.0.1:1455` browser tabs and stop the old tunnel. On the
+workstation, keep a fresh one-off callback port forwarded:
 
 ```bash
 ssh -N -L 1456:127.0.0.1:1456 microhoffman@remote-dev
@@ -131,6 +148,8 @@ codex -c 'mcp_oauth_callback_port=1456' \
   mcp login notion
 ```
 
+For Figma, use the same callback override with
+`mcp_servers.figma.url="https://mcp.figma.com/mcp"` and `mcp login figma`.
 Open only the newly printed authorization URL. A callback from an older login
 has a different OAuth state and aborts the current listener.
 
@@ -151,7 +170,7 @@ Three optional profiles are installed:
 - `codex --profile seo` enables the local Codex SEO suite, except integrations
   that require separately configured DataForSEO, Firecrawl, Google, or Gemini
   credentials.
-- `codex --profile own` enables the hosted `own-context` and Notion MCP
+- `codex --profile own` enables the hosted `own-context`, Figma, and Notion MCP
   servers.
 - `codex --profile sentry` enables Sentry's official Codex plugin, all of its
   bundled skills, and its hosted MCP server.

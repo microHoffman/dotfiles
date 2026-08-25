@@ -3,6 +3,11 @@ url = "https://mcp.notion.com/mcp"
 enabled = true
 default_tools_approval_mode = "writes"
 
+[mcp_servers.figma]
+url = "https://mcp.figma.com/mcp"
+enabled = true
+default_tools_approval_mode = "writes"
+
 [mcp_servers.own-context]
 url = "https://mcp.own.casa/mcp"
 enabled = true

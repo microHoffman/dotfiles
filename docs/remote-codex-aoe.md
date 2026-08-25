@@ -133,13 +133,14 @@ The plugin preserves Sentry's own per-skill invocation policies. The deprecated
 standalone `sentry-fix-issues` skill and the dotfiles-maintained explicit-only
 wrapper are removed.
 
-The default configuration does not declare Notion or `own-context`. The `own`
-Codex profile contains their complete definitions, and the AoE OWN profile
-supplies the same transports to structured sessions. Global guidance requires
-an additional explicit chat confirmation whenever Notion write tools are
-available. The confirmation must arrive in a later user message after Codex
-describes the exact target and effect; an initial request or standing approval
-is insufficient. Read-only Notion operations do not need this extra exchange.
+The default configuration does not declare Figma, Notion, or `own-context`.
+The `own` Codex profile contains their complete definitions, and the AoE OWN
+profile supplies the same transports to structured sessions. Global guidance
+requires an additional explicit chat confirmation whenever Figma or Notion
+write tools are available. The confirmation must arrive in a later user message
+after Codex describes the exact target and effect; an initial request or
+standing approval is insufficient. Read-only Figma and Notion operations do not
+need this extra exchange.
 
 On a local workstation, forward the fixed OAuth callback port to `remote-dev`:
 
@@ -147,21 +148,24 @@ On a local workstation, forward the fixed OAuth callback port to `remote-dev`:
 ssh -N -L 1455:127.0.0.1:1455 microhoffman@remote-dev
 ```
 
-With that tunnel running, authenticate on `remote-dev` and complete the printed
-URL in the local browser. The explicit URL is required because Codex MCP
-management commands do not load named profile overlays:
+With that tunnel running, authenticate each hosted MCP on `remote-dev` and
+complete the printed URL in the local browser. The explicit URLs are required
+because Codex MCP management commands do not load named profile overlays:
 
 ```bash
+codex -c 'mcp_servers.figma.url="https://mcp.figma.com/mcp"' \
+  mcp login figma
 codex -c 'mcp_servers.notion.url="https://mcp.notion.com/mcp"' \
   mcp login notion
 ```
 
-Select the intended Notion workspace during OAuth. Credentials are stored as
-machine-local Codex state and must never be copied into this repository.
+Authorize the intended Figma account and Notion workspace during OAuth.
+Credentials are stored as machine-local Codex state and must never be copied
+into this repository.
 
-If login exits with `Authorization state not found`, close any old Notion OAuth
-or `127.0.0.1:1455` browser tabs and stop the old tunnel. On the workstation,
-keep a fresh one-off callback port forwarded:
+If login exits with `Authorization state not found`, close any old Figma,
+Notion, or `127.0.0.1:1455` browser tabs and stop the old tunnel. On the
+workstation, keep a fresh one-off callback port forwarded:
 
 ```bash
 ssh -N -L 1456:127.0.0.1:1456 microhoffman@remote-dev
@@ -175,6 +179,8 @@ codex -c 'mcp_oauth_callback_port=1456' \
   mcp login notion
 ```
 
+For Figma, use the same callback override with
+`mcp_servers.figma.url="https://mcp.figma.com/mcp"` and `mcp login figma`.
 Use only the new authorization URL; a callback from an earlier attempt carries
 the wrong OAuth state and aborts the current listener.
 
@@ -199,9 +205,10 @@ aoe -p own
 aoe -p sentry
 ```
 
-OWN and Sentry ACP sessions receive their profile-local MCP transports. ACP
-does not load Codex named profiles, so SEO and Sentry profile skills/plugins
-remain specific to terminal sessions.
+OWN and Sentry ACP sessions receive their profile-local MCP transports. The OWN
+set includes Figma, Notion, and `own-context`. ACP does not load Codex named
+profiles, so SEO and Sentry profile skills/plugins remain specific to terminal
+sessions.
 
 ## Phase 3: OpenSSH over Tailscale
 

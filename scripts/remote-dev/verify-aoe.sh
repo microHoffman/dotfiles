@@ -321,6 +321,8 @@ check "Codex Sentry plugin is disabled by default" check_codex_plugin \
   sentry@sentry-plugin-marketplace false
 check "Codex Sentry MCP is absent by default" check_codex_mcp_absent \
   sentry
+check "Codex Figma MCP is absent by default" check_codex_mcp_absent \
+  figma
 check "Codex Notion MCP is absent by default" check_codex_mcp_absent \
   notion
 check "Codex OWN MCP is absent by default" check_codex_mcp_absent \
@@ -332,6 +334,14 @@ check "Codex SEO profile enables Nix native libraries" check_toml_value \
   "$codex_home/seo.config.toml" \
   "shell_environment_policy.set.LD_LIBRARY_PATH" string \
   "/run/current-system/sw/share/nix-ld/lib"
+check "Codex OWN profile enables Figma MCP" check_toml_value \
+  "$codex_home/own.config.toml" "mcp_servers.figma.enabled" bool true
+check "Codex OWN profile has the complete Figma transport" check_toml_value \
+  "$codex_home/own.config.toml" "mcp_servers.figma.url" string \
+  "https://mcp.figma.com/mcp"
+check "Codex OWN profile prompts before Figma writes" check_toml_value \
+  "$codex_home/own.config.toml" \
+  "mcp_servers.figma.default_tools_approval_mode" string writes
 check "Codex OWN profile enables OWN MCP" check_toml_value \
   "$codex_home/own.config.toml" "mcp_servers.own-context.enabled" bool true
 check "Codex OWN profile has the complete OWN MCP transport" check_toml_value \
@@ -350,6 +360,9 @@ check "Codex OWN profile prompts before Notion writes" check_toml_value \
   "mcp_servers.notion.default_tools_approval_mode" string writes
 check "Global guidance conditionally requires Notion write confirmation" \
   grep -Fq "Apply this section only when Notion MCP tools are available" \
+  "$codex_home/AGENTS.md"
+check "Global guidance conditionally requires Figma write confirmation" \
+  grep -Fq "Apply this section only when Figma MCP tools are available" \
   "$codex_home/AGENTS.md"
 check "Codex OWN profile parses successfully" \
   codex --profile own debug prompt-input
@@ -386,6 +399,9 @@ check "AoE SEO profile selects Codex SEO" check_toml_value \
 check "AoE OWN profile selects Codex OWN" check_toml_value \
   "$aoe_state_dir/profiles/own/config.toml" \
   "session.agent_command_override.codex" string "codex --profile own"
+check "AoE OWN ACP profile supplies Figma" check_json_value \
+  "$aoe_state_dir/profiles/own/mcp.json" \
+  "mcpServers.figma.url" "https://mcp.figma.com/mcp"
 check "AoE OWN ACP profile supplies Notion" check_json_value \
   "$aoe_state_dir/profiles/own/mcp.json" \
   "mcpServers.notion.url" "https://mcp.notion.com/mcp"
@@ -394,6 +410,8 @@ check "AoE OWN ACP profile supplies OWN context" check_json_value \
   "mcpServers.own-context.url" "https://mcp.own.casa/mcp"
 check "AoE resolves Notion from the OWN profile" check_aoe_profile_mcp \
   own notion "https://mcp.notion.com/mcp"
+check "AoE resolves Figma from the OWN profile" check_aoe_profile_mcp \
+  own figma "https://mcp.figma.com/mcp"
 check "AoE resolves OWN context from the OWN profile" check_aoe_profile_mcp \
   own own-context "https://mcp.own.casa/mcp"
 check "AoE Sentry profile selects Codex Sentry" check_toml_value \

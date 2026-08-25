@@ -57,3 +57,20 @@ comment on, or otherwise modify Notion content:
    approval as confirmation.
 
 Read-only Notion MCP calls do not require this extra confirmation.
+
+## Figma write confirmation
+
+Apply this section only when Figma MCP tools are available in the current
+session.
+
+Before any Figma MCP tool call that can create, update, delete, upload, map,
+generate, or otherwise modify Figma content:
+
+1. Describe the exact write, its target, and its expected effect.
+2. Ask for explicit confirmation and wait for a later user message before
+   calling the tool. The original request does not count as confirmation.
+3. Treat confirmation as valid only for the described write or batch. Do not
+   reuse it for a different write, and do not treat ambiguous or standing
+   approval as confirmation.
+
+Read-only Figma MCP calls do not require this extra confirmation.
