@@ -96,20 +96,36 @@ confirmation. Codex still uses the configured automatic reviewer after
 confirmation; the text-confirmation instruction is a behavioral safeguard, not
 a separate enforcement boundary.
 
-Authenticate Figma once on each machine. Codex MCP management commands do not
-load named profile overlays, so the one-off override supplies the same server
-name and URL used by both OWN modes:
+The `remote-dev` NixOS host runs Figma Linux Next on an authenticated virtual
+X11 display. Its built-in MCP server binds only to `127.0.0.1:3845`; the `own`
+Codex and AoE profiles connect to that endpoint without Figma REST credentials
+or MCP OAuth. After the host rebuild, forward the loopback noVNC console:
 
 ```bash
-codex -c 'mcp_servers.figma.url="https://mcp.figma.com/mcp"' \
-  mcp login figma
+ssh -N -L 6080:127.0.0.1:6080 microhoffman@remote-dev
 ```
 
-Figma requires interactive user OAuth; no Figma token belongs in this
-repository. Complete the printed authorization URL in a browser and keep the
-OAuth credentials machine-local. On a headless host, use the callback-port SSH
-tunnel described below for Notion; the same tunnel and fresh-port recovery
-procedure apply to Figma.
+Read the generated machine-local password with
+`cat ~/.config/figma-desktop/vnc-password`, then open
+`http://127.0.0.1:6080/vnc.html?autoconnect=1&resize=scale`. Log into Figma and
+open the target file. The VNC password, Xauthority cookie, Figma session, and
+files are runtime state and never belong in this repository.
+
+Figma preserves the login but does not reliably restore an active design tab
+after every service or host restart. Reopen a design through noVNC or directly
+from the SSH session:
+
+```bash
+env DISPLAY=:99 \
+  XAUTHORITY="$HOME/.config/figma-desktop/Xauthority" \
+  figma-linux-next '<figma-design-url>'
+```
+
+Firefox is installed and selected as the virtual session's default browser
+because its external-protocol handoff reliably returns Figma's one-time login
+callback to Figma Linux Next. The authenticated session normally persists in
+`~/.config/figma-linux-next`; repeat the browser login only if Figma expires or
+revokes it.
 
 Authenticate Notion once on each machine. Codex MCP management commands do not
 load named profile overlays, so the one-off override supplies the same server
@@ -132,8 +148,8 @@ Then run the login command on `remote-dev`, open the printed URL locally, and
 authorize the intended Notion workspace. The OAuth credentials remain
 machine-local.
 
-If login exits with `Authorization state not found`, close any old Figma,
-Notion, or `127.0.0.1:1455` browser tabs and stop the old tunnel. On the
+If login exits with `Authorization state not found`, close any old Notion or
+`127.0.0.1:1455` browser tabs and stop the old tunnel. On the
 workstation, keep a fresh one-off callback port forwarded:
 
 ```bash
@@ -148,8 +164,6 @@ codex -c 'mcp_oauth_callback_port=1456' \
   mcp login notion
 ```
 
-For Figma, use the same callback override with
-`mcp_servers.figma.url="https://mcp.figma.com/mcp"` and `mcp login figma`.
 Open only the newly printed authorization URL. A callback from an older login
 has a different OAuth state and aborts the current listener.
 
@@ -170,16 +184,16 @@ Three optional profiles are installed:
 - `codex --profile seo` enables the local Codex SEO suite, except integrations
   that require separately configured DataForSEO, Firecrawl, Google, or Gemini
   credentials.
-- `codex --profile own` enables the hosted `own-context`, Figma, and Notion MCP
-  servers.
+- `codex --profile own` enables hosted `own-context` and Notion plus the local
+  Figma Linux Next MCP server.
 - `codex --profile sentry` enables Sentry's official Codex plugin, all of its
   bundled skills, and its hosted MCP server.
 
 AoE profiles named `seo`, `own`, and `sentry` launch Codex with those profile
 flags in tmux mode. Use `aoe -p seo`, `aoe -p own`, or `aoe -p sentry`; each AoE
 profile has its own session workspace. The OWN and Sentry AoE profiles also
-supply their hosted MCP transports through profile-local `mcp.json` files for
-ACP sessions. ACP does not activate Codex named-profile skills or plugins.
+supply their MCP transports through profile-local `mcp.json` files for ACP
+sessions. ACP does not activate Codex named-profile skills or plugins.
 
 Verify the ACP runtime, then create an explicit structured OWN session with:
 
@@ -228,6 +242,20 @@ setup/githits/init.sh
 
 GitHits owns its interactive authentication and generated machine-local
 integration. Dotfiles does not duplicate its MCP or guidance block.
+
+## Operate the VM-local Figma desktop
+
+Home Manager starts Xvfb, Openbox, Figma Linux Next, authenticated x11vnc, and
+noVNC as persistent user services. X11 uses a generated Xauthority cookie. VNC
+uses a generated password, and both VNC and noVNC bind to loopback only; no
+firewall ports are opened. Reach the console only through the SSH tunnel shown
+above.
+
+The local MCP is read-only by default and starts automatically on port 3845.
+Figma write tools remain disabled until explicitly enabled under Figma Linux
+Next Settings → General → MCP integrations. New `own` Codex sessions load the
+local endpoint; existing sessions must be restarted after the configuration
+switch.
 
 ## Store or rotate the dashboard passphrase
 

@@ -1,4 +1,5 @@
 {
+  inputs,
   lib,
   pkgs,
   vars,
@@ -6,6 +7,7 @@
 }:
 {
   imports = [
+    inputs.figma-linux-next.nixosModules.default
     ./hardware.nix
     ./disko.nix
     ../../modules/nixos/base.nix
@@ -37,6 +39,8 @@
   };
 
   nixpkgs.config.allowUnfree = true;
+  programs.firefox.enable = vars.figmaDesktop.enable;
+  programs.figma-linux-next.enable = vars.figmaDesktop.enable;
   programs.zsh.enable = true;
 
   environment.systemPackages = with pkgs; [
@@ -60,7 +64,7 @@
     useUserPackages = true;
     backupFileExtension = "hm-backup";
     extraSpecialArgs = {
-      inherit vars;
+      inherit inputs vars;
     };
     users.${vars.username} = {
       imports = [
@@ -69,6 +73,7 @@
         ../../modules/home/commands.nix
         ../../modules/home/dev-tools.nix
         ../../modules/home/foundry.nix
+        ../../modules/home/figma-desktop.nix
         ../../modules/home/git.nix
         ../../modules/home/mise.nix
         ../../modules/home/neovim.nix

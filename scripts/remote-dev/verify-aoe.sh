@@ -7,6 +7,7 @@ aoe_state_dir="${XDG_CONFIG_HOME:-${HOME}/.config}/agent-of-empires"
 aoe_config="${AOE_CONFIG_FILE:-${aoe_state_dir}/config.toml}"
 codex_config="${CODEX_CONFIG_FILE:-${HOME}/.codex/config.toml}"
 codex_home="$(dirname -- "$codex_config")"
+figma_state_dir="${XDG_CONFIG_HOME:-${HOME}/.config}/figma-desktop"
 
 check() {
   label="$1"
@@ -39,7 +40,11 @@ get_dashboard_port() {
 }
 
 check_dashboard_loopback() {
-  port="$(get_dashboard_port)"
+  check_loopback_port "$(get_dashboard_port)"
+}
+
+check_loopback_port() {
+  local port="$1"
   case "$port" in
     '' | *[!0-9]*)
       return 1
@@ -47,10 +52,26 @@ check_dashboard_loopback() {
   esac
 
   ss -H -ltn | awk -v port="$port" '
-    $4 == "127.0.0.1:" port { loopback = 1; next }
+    $4 == "127.0.0.1:" port || $4 == "[::1]:" port { loopback = 1; next }
     $4 ~ (":" port "$") { public = 1 }
     END { exit !(loopback && !public) }
   '
+}
+
+check_figma_mcp() {
+  curl -fsS --max-time 10 \
+    -H 'Accept: application/json, text/event-stream' \
+    -H 'Content-Type: application/json' \
+    --data '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2025-03-26","capabilities":{},"clientInfo":{"name":"verify-aoe","version":"1.0"}}}' \
+    http://127.0.0.1:3845/mcp \
+    | python3 -c '
+import json
+import sys
+
+response = json.load(sys.stdin)
+server = response.get("result", {}).get("serverInfo", {})
+raise SystemExit(0 if server.get("name") == "figma-linux-next" else 1)
+'
 }
 
 check_ssh_agent_environment() {
@@ -58,6 +79,13 @@ check_ssh_agent_environment() {
   systemctl --user show -p Environment --value aoe-dashboard.service \
     | tr ' ' '\n' \
     | grep -Fxq "$expected"
+}
+
+check_ssh_agent_socket() {
+  local status
+  SSH_AUTH_SOCK="/run/user/$(id -u)/ssh-agent" ssh-add -l >/dev/null 2>&1
+  status=$?
+  [ "$status" -eq 0 ] || [ "$status" -eq 1 ]
 }
 
 check_dashboard_acp_node() {
@@ -312,6 +340,8 @@ check "tailscale status" tailscale status
 check "Tailscale Funnel status" tailscale funnel status
 check "tmux version" tmux -V
 check "Git version" git --version
+check "SSH agent service is active" systemctl --user is-active ssh-agent.service
+check "SSH agent socket responds" check_ssh_agent_socket
 check "Codex version" codex --version
 check "Codex login" codex login status
 check "AoE version" aoe --version
@@ -323,6 +353,8 @@ check "Codex Sentry MCP is absent by default" check_codex_mcp_absent \
   sentry
 check "Codex Figma MCP is absent by default" check_codex_mcp_absent \
   figma
+check "Codex hosted Figma Console MCP is absent by default" \
+  check_codex_mcp_absent figma-console
 check "Codex Notion MCP is absent by default" check_codex_mcp_absent \
   notion
 check "Codex OWN MCP is absent by default" check_codex_mcp_absent \
@@ -338,7 +370,7 @@ check "Codex OWN profile enables Figma MCP" check_toml_value \
   "$codex_home/own.config.toml" "mcp_servers.figma.enabled" bool true
 check "Codex OWN profile has the complete Figma transport" check_toml_value \
   "$codex_home/own.config.toml" "mcp_servers.figma.url" string \
-  "https://mcp.figma.com/mcp"
+  "http://127.0.0.1:3845/mcp"
 check "Codex OWN profile prompts before Figma writes" check_toml_value \
   "$codex_home/own.config.toml" \
   "mcp_servers.figma.default_tools_approval_mode" string writes
@@ -401,7 +433,7 @@ check "AoE OWN profile selects Codex OWN" check_toml_value \
   "session.agent_command_override.codex" string "codex --profile own"
 check "AoE OWN ACP profile supplies Figma" check_json_value \
   "$aoe_state_dir/profiles/own/mcp.json" \
-  "mcpServers.figma.url" "https://mcp.figma.com/mcp"
+  "mcpServers.figma.url" "http://127.0.0.1:3845/mcp"
 check "AoE OWN ACP profile supplies Notion" check_json_value \
   "$aoe_state_dir/profiles/own/mcp.json" \
   "mcpServers.notion.url" "https://mcp.notion.com/mcp"
@@ -411,9 +443,28 @@ check "AoE OWN ACP profile supplies OWN context" check_json_value \
 check "AoE resolves Notion from the OWN profile" check_aoe_profile_mcp \
   own notion "https://mcp.notion.com/mcp"
 check "AoE resolves Figma from the OWN profile" check_aoe_profile_mcp \
-  own figma "https://mcp.figma.com/mcp"
+  own figma "http://127.0.0.1:3845/mcp"
 check "AoE resolves OWN context from the OWN profile" check_aoe_profile_mcp \
   own own-context "https://mcp.own.casa/mcp"
+for service in \
+  figma-virtual-display \
+  figma-window-manager \
+  figma-desktop \
+  figma-vnc \
+  figma-novnc
+do
+  check "${service} service is enabled" \
+    systemctl --user is-enabled "${service}.service"
+  check "${service} service is active" \
+    systemctl --user is-active "${service}.service"
+done
+check "Figma Linux Next MCP responds locally" check_figma_mcp
+check "Figma MCP listens only on loopback" check_loopback_port 3845
+check "Figma VNC listens only on loopback" check_loopback_port 5900
+check "Figma noVNC listens only on loopback" check_loopback_port 6080
+check "Figma VNC password exists" test -s "$figma_state_dir/vnc-password"
+check_value "Figma VNC password mode is 0600" "600" \
+  stat -c %a "$figma_state_dir/vnc-password"
 check "AoE Sentry profile selects Codex Sentry" check_toml_value \
   "$aoe_state_dir/profiles/sentry/config.toml" \
   "session.agent_command_override.codex" string "codex --profile sentry"
@@ -428,7 +479,7 @@ check "AoE serve daemon reports healthy" \
   env -u AOE_SERVE_PASSPHRASE aoe serve --status
 check "AoE dashboard URL exists (output suppressed)" aoe url
 check_value "AoE dashboard uses configured port" "42313" get_dashboard_port
-check "AoE listens only on its configured IPv4 loopback port" \
+check "AoE listens only on its configured loopback port" \
   check_dashboard_loopback
 check "cloudflared is absent from PATH" bash -c '! command -v cloudflared >/dev/null 2>&1'
 check "dashboard environment file exists" test -f "$environment_file"

@@ -4,7 +4,7 @@ enabled = true
 default_tools_approval_mode = "writes"
 
 [mcp_servers.figma]
-url = "https://mcp.figma.com/mcp"
+url = "http://127.0.0.1:3845/mcp"
 enabled = true
 default_tools_approval_mode = "writes"
 

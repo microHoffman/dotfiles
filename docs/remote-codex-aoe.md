@@ -142,29 +142,55 @@ after Codex describes the exact target and effect; an initial request or
 standing approval is insufficient. Read-only Figma and Notion operations do not
 need this extra exchange.
 
-On a local workstation, forward the fixed OAuth callback port to `remote-dev`:
+Figma Linux Next runs on the VM's authenticated virtual X11 display. Its local
+MCP binds to `127.0.0.1:3845`, and both OWN profiles use it without REST tokens
+or MCP OAuth. Forward the loopback graphical console from a workstation or
+Termux:
+
+```bash
+ssh -N -L 6080:127.0.0.1:6080 microhoffman@remote-dev
+```
+
+Read the generated VNC password on the SSH session with
+`cat ~/.config/figma-desktop/vnc-password`, then open
+`http://127.0.0.1:6080/vnc.html?autoconnect=1&resize=scale`. Log into Figma and
+open the required files.
+
+Figma preserves the login but does not reliably restore an active design tab
+after every service or host restart. Reopen a design through noVNC or directly
+from the SSH session:
+
+```bash
+env DISPLAY=:99 \
+  XAUTHORITY="$HOME/.config/figma-desktop/Xauthority" \
+  figma-linux-next '<figma-design-url>'
+```
+
+Firefox is installed and selected as the virtual session's default browser so
+Figma's one-time external-protocol login callback returns to Figma Linux Next.
+The authenticated session normally persists in `~/.config/figma-linux-next`;
+repeat the login only if Figma expires or revokes it.
+
+Notion still uses OAuth. Forward the fixed OAuth callback port to `remote-dev`:
 
 ```bash
 ssh -N -L 1455:127.0.0.1:1455 microhoffman@remote-dev
 ```
 
-With that tunnel running, authenticate each hosted MCP on `remote-dev` and
-complete the printed URL in the local browser. The explicit URLs are required
-because Codex MCP management commands do not load named profile overlays:
+With that tunnel running, authenticate Notion on `remote-dev` and complete the
+printed URL in the local browser. The explicit URL is required because Codex
+MCP management commands do not load named profile overlays:
 
 ```bash
-codex -c 'mcp_servers.figma.url="https://mcp.figma.com/mcp"' \
-  mcp login figma
 codex -c 'mcp_servers.notion.url="https://mcp.notion.com/mcp"' \
   mcp login notion
 ```
 
-Authorize the intended Figma account and Notion workspace during OAuth.
-Credentials are stored as machine-local Codex state and must never be copied
-into this repository.
+Authorize the intended Notion workspace. Credentials are stored as
+machine-local Codex state and must never be copied into this repository.
 
-If login exits with `Authorization state not found`, close any old Figma,
-Notion, or `127.0.0.1:1455` browser tabs and stop the old tunnel. On the
+If login exits with `Authorization state not found`, close any old Notion or
+`127.0.0.1:1455` browser tabs and stop the old tunnel. On the
 workstation, keep a fresh one-off callback port forwarded:
 
 ```bash
@@ -179,8 +205,6 @@ codex -c 'mcp_oauth_callback_port=1456' \
   mcp login notion
 ```
 
-For Figma, use the same callback override with
-`mcp_servers.figma.url="https://mcp.figma.com/mcp"` and `mcp login figma`.
 Use only the new authorization URL; a callback from an earlier attempt carries
 the wrong OAuth state and aborts the current listener.
 
@@ -310,6 +334,13 @@ Run `tailscale funnel status` before considering `tailscale funnel reset`;
 `reset` removes every Funnel mapping on the node.
 
 ## Phase 6: passphrase, lingering, and dashboard
+
+The VM runs Xvfb, Openbox, Figma Linux Next, authenticated x11vnc, and noVNC as
+persistent user services. X11 uses a generated Xauthority cookie. VNC uses a
+generated password, and both VNC and noVNC bind to loopback only; the firewall
+does not expose either service. The built-in MCP also binds to loopback and is
+read-only by default. Enable write tools only from Figma Linux Next Settings →
+General → MCP integrations after reviewing the Figma write-confirmation policy.
 
 Generate at least 24 random characters in a password manager. Store it through
 the hidden prompt, never as a shell argument:
@@ -622,14 +653,17 @@ Then create a disposable Git repository and AoE worktree. Verify:
 1. Codex runs in a normal terminal session with sandboxing and auto-review.
 2. An OWN structured session exposes Notion and `own-context`, renders tool
    cards, and preserves its transcript.
-3. A Notion write waits for a later user confirmation.
-4. SSH/browser disconnect and reconnect reach the same process.
-5. Dashboard stop/start preserves the tmux session.
-6. `codex resume` recovers the conversation after a deliberate stop.
-7. Another device can open the redacted Funnel hostname and authenticate.
-8. Public IPv4 and IPv6 connections to TCP 42313 fail.
-9. Funnel can be disabled immediately.
-10. Logout persistence works. Reboot testing requires separate approval.
+3. The local Figma services are active, ports 3845, 5900, and 6080 listen only
+   on loopback, and an OWN session can read the open file through
+   `get_file_info` or `get_metadata`.
+4. A Figma or Notion write waits for a later user confirmation.
+5. SSH/browser disconnect and reconnect reach the same process.
+6. Dashboard stop/start preserves the tmux session.
+7. `codex resume` recovers the conversation after a deliberate stop.
+8. Another device can open the redacted Funnel hostname and authenticate.
+9. Public IPv4 and IPv6 connections to TCP 42313 fail.
+10. Funnel can be disabled immediately.
+11. Logout persistence works. Reboot testing requires separate approval.
 
 After every acceptance check passes, permanently remove only the known
 disposable session when immediate cleanup is intended. Show the exact target and
@@ -660,6 +694,8 @@ Machine-local and never committed:
 ```text
 ~/.config/systemd/user/aoe-dashboard.service
 ~/.config/aoe-dashboard/serve.env
+~/.config/figma-desktop/
+~/.config/figma-linux-next/
 ~/.codex/config.toml
 ~/.codex/auth.json
 ~/.config/agent-of-empires/config.toml

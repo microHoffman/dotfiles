@@ -50,13 +50,14 @@ for `gitlab.tomatom.cz`, `gitlab-create-mr` prefers that authenticated CLI and
 falls back to its bundled `GITLAB_TOKEN` helper only when the CLI is unavailable
 or unauthenticated.
 
-The SEO suite, hosted Figma and Notion MCP servers, and official Sentry plugin
-are kept out of the default Codex context. Start `codex --profile own` to enable
-the OWN, Figma, and Notion MCP servers, `codex --profile seo` for the SEO suite,
-or `codex --profile sentry` for Sentry. The OWN profile requires a separate
-explicit chat confirmation before each Figma or Notion write. The Sentry plugin
-supplies its complete upstream skill set and hosted MCP configuration without a
-dotfiles-maintained skill wrapper. `grill-me`, `grill-with-docs`,
+The SEO suite, OWN-profile MCP servers, and official Sentry plugin are kept out
+of the default Codex context. Start `codex --profile own` to enable hosted OWN
+and Notion MCP servers plus the VM-local Figma MCP, `codex --profile seo` for
+the SEO suite, or `codex --profile sentry` for Sentry. The OWN profile requires
+a separate explicit chat confirmation before each Figma or Notion write. The
+Sentry plugin supplies its complete upstream skill set and hosted MCP
+configuration without a dotfiles-maintained skill wrapper. `grill-me`,
+`grill-with-docs`,
 `improve-codebase-architecture`, `handoff`, and `teach` retain the upstream
 explicit-only policy.
 

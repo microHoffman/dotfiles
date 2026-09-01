@@ -13,6 +13,13 @@
       url = "github:nix-community/disko";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+
+    # v0.17.0's tag still points its Nix package at 0.16.0. Pin the upstream
+    # post-release flake update that carries the 0.17.0 binary and hash.
+    figma-linux-next = {
+      url = "github:arximus88/figma-linux-next/5b0877078e2c95be053c07dd3534613ad73bab6f";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
   outputs =

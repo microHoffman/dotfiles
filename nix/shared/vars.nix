@@ -27,6 +27,16 @@
     port = 42313;
   };
 
+  # Always-on Figma Linux session for localhost MCP access. The graphical
+  # console is loopback-only and reached through an SSH port forward.
+  figmaDesktop = {
+    enable = true;
+    display = ":99";
+    geometry = "1920x1080";
+    vncPort = 5900;
+    noVncPort = 6080;
+  };
+
   # Add your local client public SSH key before installation.
   # Example: "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAA... laptop"
   authorizedSshKeys = [
