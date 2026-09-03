@@ -64,7 +64,14 @@ let
         --delete-if-equals session.custom_agents.codex-sentry \
           ${lib.escapeShellArg ''"codex --config mcp_servers.sentry.enabled=true"''} \
         --delete-if-equals session.agent_detect_as.codex-sentry \
-          ${lib.escapeShellArg ''"codex"''}
+          ${lib.escapeShellArg ''"codex"''} \
+        --delete-if-equals session.agent_command_override.codex \
+          ${lib.escapeShellArg ''"aoe-codex"''} \
+        --delete-if-equals session.session_id_poller_max_threads 50 \
+        --delete-if-equals sound.mode ${lib.escapeShellArg ''"random"''} \
+        --delete-if-equals updates.check_interval_hours 24 \
+        --delete-if-equals updates.notify_in_cli true \
+        --delete-if-equals updates.web_poll_interval_minutes 60
 
       reconcile-agent-config \
         --source ${aoeSeoTemplate} \

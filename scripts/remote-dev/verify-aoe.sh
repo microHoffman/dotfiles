@@ -120,6 +120,12 @@ check_dashboard_local_bin_path() {
     | grep -Fxq "$expected"
 }
 
+check_aoe_config_warning_free() {
+  output="$(aoe profile list 2>&1)" || return 1
+  ! printf '%s\n' "$output" \
+    | grep -Fq "Unrecognized keys in global config"
+}
+
 check_codex_acp_doctor() {
   aoe acp doctor --json | python3 -c '
 import json
@@ -345,6 +351,8 @@ check "SSH agent socket responds" check_ssh_agent_socket
 check "Codex version" codex --version
 check "Codex login" codex login status
 check "AoE version" aoe --version
+check "AoE global config has no unrecognized keys" \
+  check_aoe_config_warning_free
 check "Codex MCP OAuth callback port is fixed" check_toml_value \
   "$codex_config" "mcp_oauth_callback_port" integer 1455
 check "Codex Sentry plugin is disabled by default" check_codex_plugin \
@@ -419,6 +427,18 @@ check "AoE recognizes the structured-view session setting" \
   aoe settings explain acp.offer_structured_in_new_session
 check "AoE dashboard-managed ACP installation is disabled" check_toml_value \
   "$aoe_config" "acp.allow_agent_install" bool false
+check "AoE main profile uses the built-in Codex launcher" \
+  check_toml_path_absent "$aoe_config" "session.agent_command_override.codex"
+check "AoE legacy session poller tuning is absent" check_toml_path_absent \
+  "$aoe_config" "session.session_id_poller_max_threads"
+check "AoE legacy sound mode is absent" check_toml_path_absent \
+  "$aoe_config" "sound.mode"
+check "AoE legacy update interval is absent" check_toml_path_absent \
+  "$aoe_config" "updates.check_interval_hours"
+check "AoE legacy CLI notification toggle is absent" check_toml_path_absent \
+  "$aoe_config" "updates.notify_in_cli"
+check "AoE legacy web polling interval is absent" check_toml_path_absent \
+  "$aoe_config" "updates.web_poll_interval_minutes"
 check "AoE keeps worktrees disabled by default" check_toml_value \
   "$aoe_config" "worktree.enabled" bool false
 check "AoE legacy codex-sentry command is absent" check_toml_path_absent \

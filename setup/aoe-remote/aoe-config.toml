@@ -40,7 +40,6 @@ delete_to_trash = false
 merge_hooks_into_selected_agent = true
 mouse_capture = true
 restart_wake_message = "wake up: pick up what you were doing"
-session_id_poller_max_threads = 50
 show_tips = true
 smart_rename = true
 smart_rename_agent = ""
@@ -53,7 +52,6 @@ yolo_mode_default = false
 
 [sound]
 enabled = false
-mode = "random"
 
 [status_hooks]
 enabled = false
@@ -68,10 +66,7 @@ status_bar = "auto"
 
 [updates]
 auto_update_plugins = false
-check_interval_hours = 24
-notify_in_cli = true
 update_check_mode = "notify"
-web_poll_interval_minutes = 60
 
 [web]
 notifications_enabled = true

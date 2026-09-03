@@ -38,10 +38,19 @@ generated = "keep"
 
 [session]
 default_attach_mode = "live_send"
+session_id_poller_max_threads = 50
 unread_indicator = true
 
 [worktree]
 enabled = true
+
+[sound]
+mode = "random"
+
+[updates]
+check_interval_hours = 24
+notify_in_cli = true
+web_poll_interval_minutes = 60
 
 [mcp_servers.sentry]
 url = "https://mcp.sentry.dev/mcp?skills=inspect"
@@ -78,6 +87,9 @@ custom = "custom-agent"
 [session.agent_detect_as]
 codex-sentry = "codex"
 
+[session.agent_command_override]
+codex = "aoe-codex"
+
 [hooks.state]
 trusted = "keep"
 TOML
@@ -93,6 +105,12 @@ delete_legacy_values=(
   --delete-if-equals session.custom_agents.codex-sentry \
     '"codex --config mcp_servers.sentry.enabled=true"'
   --delete-if-equals session.agent_detect_as.codex-sentry '"codex"'
+  --delete-if-equals session.agent_command_override.codex '"aoe-codex"'
+  --delete-if-equals session.session_id_poller_max_threads 50
+  --delete-if-equals sound.mode '"random"'
+  --delete-if-equals updates.check_interval_hours 24
+  --delete-if-equals updates.notify_in_cli true
+  --delete-if-equals updates.web_poll_interval_minutes 60
 )
 
 "$reconciler" \
@@ -113,7 +131,11 @@ assert data["environment"] == ["TERM", "COLORTERM"]
 assert data["generated"] == "keep"
 assert data["session"]["default_attach_mode"] == "tmux"
 assert data["session"]["unread_indicator"] is True
+assert "session_id_poller_max_threads" not in data["session"]
+assert "agent_command_override" not in data["session"]
 assert data["worktree"]["enabled"] is False
+assert "sound" not in data
+assert "updates" not in data
 assert "sentry" not in data["mcp_servers"]
 assert data["mcp_servers"]["custom"]["enabled"] is True
 assert "own-context" not in data["mcp_servers"]
@@ -141,6 +163,20 @@ printf 'name = "managed"\n' >"$minimal_source"
 modified_target="${temporary_dir}/modified.toml"
 modified_lock="${temporary_dir}/modified.lock"
 cat >"$modified_target" <<'TOML'
+[session]
+session_id_poller_max_threads = 75
+
+[session.agent_command_override]
+codex = "custom-codex"
+
+[sound]
+mode = "specific"
+
+[updates]
+check_interval_hours = 12
+notify_in_cli = false
+web_poll_interval_minutes = 30
+
 [mcp_servers.sentry]
 url = "https://self-hosted.example.com/mcp"
 enabled = true
@@ -177,6 +213,12 @@ assert data["mcp_servers"]["notion"]["default_tools_approval_mode"] == "prompt"
 assert data["mcp_servers"]["own-context"]["url"] == "https://mcp.own.casa/custom"
 assert data["session"]["custom_agents"]["codex-sentry"] == "custom-codex-sentry"
 assert data["session"]["agent_detect_as"]["codex-sentry"] == "custom-detector"
+assert data["session"]["agent_command_override"]["codex"] == "custom-codex"
+assert data["session"]["session_id_poller_max_threads"] == 75
+assert data["sound"]["mode"] == "specific"
+assert data["updates"]["check_interval_hours"] == 12
+assert data["updates"]["notify_in_cli"] is False
+assert data["updates"]["web_poll_interval_minutes"] == 30
 PY
 
 "$reconciler" --source "$minimal_source" --target "$target_file" --lock "$lock_file"
