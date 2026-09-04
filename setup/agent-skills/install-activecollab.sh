@@ -13,6 +13,7 @@ activecollab_cli_requested_version="${ACTIVECOLLAB_CLI_VERSION:-latest}"
 activecollab_cli_minimum_version="0.3.1"
 mise_config_home="${XDG_CONFIG_HOME:-${HOME}/.config}"
 activecollab_cli_config="${mise_config_home}/mise/conf.d/activecollab-cli.toml"
+activecollab_skill_file="${HOME}/.agents/skills/activecollab/SKILL.md"
 
 mkdir -p "$(dirname -- "$activecollab_cli_config")"
 if [ "$activecollab_cli_requested_version" = "latest" ]; then
@@ -46,7 +47,11 @@ if [[ "$oldest_version" != "$activecollab_cli_minimum_version" ]]; then
   exit 1
 fi
 
-install_global_skill https://github.com/microHoffman/agent-skills activecollab
+if [ -f "$activecollab_skill_file" ]; then
+  npx -y skills@latest update activecollab --global --yes
+else
+  install_global_skill https://github.com/microHoffman/agent-skills activecollab
+fi
 
 printf 'Installed activecollab CLI %s and the activecollab agent skill.\n' "$installed_version"
 printf 'Log in with: activecollab auth login --url https://activecollab.example.com/api/v1\n'

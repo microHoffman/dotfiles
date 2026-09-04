@@ -125,6 +125,17 @@ EOF
     bash "${installer_dir}/install-activecollab.sh" >/dev/null
 
   grep -Fq 'mise age=0d latest github:microHoffman/activecollab-cli' "$log"
+  grep -Fq 'npx -y skills@latest add https://github.com/microHoffman/agent-skills --skill activecollab --agent * --global --yes' "$log"
+
+  mkdir -p "${home_dir}/.agents/skills/activecollab"
+  : >"${home_dir}/.agents/skills/activecollab/SKILL.md"
+  HOME="$home_dir" \
+    XDG_CONFIG_HOME="${home_dir}/.config" \
+    TEST_LOG="$log" \
+    PATH="${bin_dir}:$PATH" \
+    bash "${installer_dir}/install-activecollab.sh" >/dev/null
+
+  grep -Fq 'npx -y skills@latest update activecollab --global --yes' "$log"
 }
 
 make_agent_browser_stubs() {
