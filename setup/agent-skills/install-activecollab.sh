@@ -10,7 +10,7 @@ need_cmd npx
 
 activecollab_cli_tool="github:microHoffman/activecollab-cli"
 activecollab_cli_requested_version="${ACTIVECOLLAB_CLI_VERSION:-latest}"
-activecollab_cli_minimum_version="0.3.0"
+activecollab_cli_minimum_version="0.3.1"
 mise_config_home="${XDG_CONFIG_HOME:-${HOME}/.config}"
 activecollab_cli_config="${mise_config_home}/mise/conf.d/activecollab-cli.toml"
 

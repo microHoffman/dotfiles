@@ -103,12 +103,12 @@ printf 'mise age=%s %s\n' "${MISE_MINIMUM_RELEASE_AGE:-unset}" "$*" >>"$TEST_LOG
 case "$1" in
   latest)
     test "${MISE_MINIMUM_RELEASE_AGE:-}" = "0d"
-    printf '0.3.0\n'
+    printf '0.3.1\n'
     ;;
   use)
     ;;
   exec)
-    printf '{"version":"0.3.0"}\n'
+    printf '{"version":"0.3.1"}\n'
     ;;
   *)
     exit 1

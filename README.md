@@ -109,7 +109,7 @@ setup/agent-skills/install-activecollab.sh
 ```
 
 The installer uses mise to select the latest stable CLI release in
-`~/.config/mise/conf.d/activecollab-cli.toml`, verifies that it is version 0.3.0
+`~/.config/mise/conf.d/activecollab-cli.toml`, verifies that it is version 0.3.1
 or newer, and installs the skill globally for all supported agents. Rerun the
 same command to update both. To install a specific compatible CLI release, set
 `ACTIVECOLLAB_CLI_VERSION` for that invocation.
