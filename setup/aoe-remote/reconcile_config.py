@@ -181,6 +181,24 @@ def fingerprint(content):
     return hashlib.sha256(content).digest()
 
 
+def validate_managed_mcp_transports(source, target):
+    stdio_keys = {
+        "command", "args", "env", "env_vars", "cwd",
+        "experimental_environment",
+    }
+    for name, server in source.get("mcp_servers", {}).items():
+        if not is_table(server) or "url" not in server:
+            continue
+        merged = target["mcp_servers"][name]
+        conflicting = stdio_keys.intersection(merged)
+        if conflicting:
+            keys = ", ".join(sorted(conflicting))
+            raise ReconcileError(
+                f"managed HTTP MCP server {name} still has stdio settings: "
+                f"{keys}; review the custom transport before migrating"
+            )
+
+
 def target_fingerprint(path):
     content, _ = read_target(path)
     return fingerprint(content)
@@ -260,6 +278,7 @@ def reconcile_once(source_document, target_path, delete_rules):
 
     changed = merge_tables(target_document, source_document)
     changed = delete_matching_values(target_document, delete_rules) or changed
+    validate_managed_mcp_transports(source_document, target_document)
     if not changed:
         return False
 

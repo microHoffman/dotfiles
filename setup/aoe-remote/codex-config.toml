@@ -58,6 +58,10 @@ enabled = false
 [mcp_servers.openaiDeveloperDocs]
 url = "https://developers.openai.com/mcp"
 
+[mcp_servers.githits]
+url = "https://mcp.githits.com"
+enabled = true
+
 [[skills.config]]
 path = "/home/microhoffman/.codex/skills/seo/SKILL.md"
 enabled = false

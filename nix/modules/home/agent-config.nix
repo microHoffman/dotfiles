@@ -38,6 +38,8 @@ let
         --source ${codexTemplate} \
         --target ${codexConfig} \
         --lock ${codexConfig}.lock \
+        --delete-if-equals mcp_servers.githits.command ${lib.escapeShellArg ''"npx"''} \
+        --delete-if-equals mcp_servers.githits.args ${lib.escapeShellArg ''["-y", "githits@latest", "mcp", "start"]''} \
         --delete-if-equals mcp_servers.sentry ${lib.escapeShellArg legacySentryMcp} \
         --delete-if-equals mcp_servers.notion ${lib.escapeShellArg legacyNotionMcp} \
         --delete-if-equals mcp_servers.own-context ${lib.escapeShellArg legacyOwnContextMcp}
@@ -91,7 +93,10 @@ let
   };
 in
 {
-  home.packages = [ managedAgentConfigs ];
+  home.packages = [
+    managedAgentConfigs
+    reconciler
+  ];
 
   home.file.".codex/AGENTS.md" = {
     source = ../../../setup/agent-config/AGENTS.md;

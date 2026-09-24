@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-if [ "$#" -ne 1 ]; then
-  printf 'Usage: %s /path/to/reconcile-agent-config\n' "${0##*/}" >&2
+if [ "$#" -lt 1 ] || [ "$#" -gt 2 ]; then
+  printf 'Usage: %s /path/to/reconcile-agent-config [githits-init.sh]\n' "${0##*/}" >&2
   exit 2
 fi
 
@@ -267,3 +267,85 @@ lock_holder=$!
 wait "$lock_holder"
 
 printf 'reconcile-agent-config tests passed\n'
+
+cat >"$source_file" <<'TOML'
+[mcp_servers.githits]
+url = "https://mcp.githits.com"
+enabled = true
+TOML
+cat >"$target_file" <<'TOML'
+# Retain unrelated settings and GitHits tool policy.
+model = "keep-model"
+[mcp_servers.custom]
+command = "keep-command"
+[mcp_servers.githits]
+command = "npx"
+args = ["-y", "githits@latest", "mcp", "start"]
+tool_timeout_sec = 120
+TOML
+migrate_githits() {
+  "$reconciler" --source "$source_file" --target "$target_file" --lock "$lock_file" \
+    --delete-if-equals mcp_servers.githits.command '"npx"' \
+    --delete-if-equals mcp_servers.githits.args '["-y", "githits@latest", "mcp", "start"]'
+}
+migrate_githits
+python3 - "$target_file" <<'PY'
+import pathlib
+import sys
+import tomllib
+data = tomllib.loads(pathlib.Path(sys.argv[1]).read_text())
+assert data["model"] == "keep-model"
+assert data["mcp_servers"]["custom"]["command"] == "keep-command"
+assert data["mcp_servers"]["githits"] == {
+    "url": "https://mcp.githits.com", "enabled": True,
+    "tool_timeout_sec": 120,
+}
+PY
+githits_hash="$(sha256sum "$target_file")"
+migrate_githits
+test "$(sha256sum "$target_file")" = "$githits_hash"
+
+for conflicting_setting in \
+  'command = "custom-githits"' \
+  'args = ["custom"]' \
+  'env = { TOKEN = "test-value" }'
+do
+  printf '[mcp_servers.githits]\n%s\n' "$conflicting_setting" >"$target_file"
+  githits_hash="$(sha256sum "$target_file")"
+  if migrate_githits; then
+    printf 'expected conflicting GitHits transport to fail\n' >&2
+    exit 1
+  fi
+  test "$(sha256sum "$target_file")" = "$githits_hash"
+done
+
+if [ "$#" -eq 2 ]; then
+  mkdir -p "${temporary_dir}/bin" "${temporary_dir}/codex"
+  ln -s "$reconciler" "${temporary_dir}/bin/reconcile-agent-config"
+  cat >"${temporary_dir}/codex/config.toml" <<'TOML'
+model = "keep-model"
+[mcp_servers.githits]
+command = "npx"
+args = ["-y", "githits@latest", "mcp", "start"]
+TOML
+  for attempt in 1 2; do
+    PATH="${temporary_dir}/bin:$PATH" CODEX_HOME="${temporary_dir}/codex" \
+      XDG_STATE_HOME="${temporary_dir}/state" bash "$2" --configure-only
+  done
+  python3 - "${temporary_dir}" <<'PY'
+import pathlib
+import sys
+import tomllib
+root = pathlib.Path(sys.argv[1])
+data = tomllib.loads((root / "codex/config.toml").read_text())
+assert data["model"] == "keep-model"
+assert data["mcp_servers"]["githits"] == {
+    "url": "https://mcp.githits.com", "enabled": True,
+}
+backups = list((root / "state/dotfiles/backups/githits").glob("*.toml"))
+assert len(backups) == 2
+assert all(p.stat().st_mode & 0o777 == 0o600 for p in backups)
+assert any('command = "npx"' in p.read_text() for p in backups)
+PY
+fi
+printf 'GitHits migration and setup tests passed\n'

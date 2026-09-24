@@ -142,7 +142,13 @@ after Codex describes the exact target and effect; an initial request or
 standing approval is insufficient. Read-only Figma and Notion operations do not
 need this extra exchange.
 
-Figma Linux Next runs on the VM's authenticated virtual X11 display. Its local
+Figma Linux Next runs on demand on the VM's authenticated virtual X11 display.
+Use `figma-session start` before an OWN session that needs Figma,
+`figma-session status` to check it, and `figma-session stop` when finished.
+Stopping also stops Xvfb, Openbox, VNC, and noVNC. These services do not start
+at boot or when AoE creates a session. The OWN profiles retain the MCP entry,
+so connection errors while Figma is stopped are expected; start Figma and
+restart or resume the session to reconnect. Its local
 MCP binds to `127.0.0.1:3845`, and both OWN profiles use it without REST tokens
 or MCP OAuth. Forward the loopback graphical console from a workstation or
 Termux:
@@ -335,8 +341,9 @@ Run `tailscale funnel status` before considering `tailscale funnel reset`;
 
 ## Phase 6: passphrase, lingering, and dashboard
 
-The VM runs Xvfb, Openbox, Figma Linux Next, authenticated x11vnc, and noVNC as
-persistent user services. X11 uses a generated Xauthority cookie. VNC uses a
+The VM provides Xvfb, Openbox, Figma Linux Next, authenticated x11vnc, and noVNC
+as on-demand user services under `figma.target`. Use `figma-session start` and
+`figma-session stop` to operate the group. X11 uses a generated Xauthority cookie. VNC uses a
 generated password, and both VNC and noVNC bind to loopback only; the firewall
 does not expose either service. The built-in MCP also binds to loopback and is
 read-only by default. Enable write tools only from Figma Linux Next Settings →

@@ -74,6 +74,23 @@ raise SystemExit(0 if server.get("name") == "figma-linux-next" else 1)
 '
 }
 
+check_manual_unit() {
+  local state
+  test "$(systemctl --user show "$1" -p LoadState --value)" = loaded || return 1
+  state="$(systemctl --user is-enabled "$1" 2>/dev/null)"
+  case "$state" in
+    static | disabled | linked) return 0 ;;
+    *) return 1 ;;
+  esac
+}
+
+check_port_closed() {
+  ss -H -ltn | awk -v port="$1" '
+    $4 ~ (":" port "$") { found = 1 }
+    END { exit found ? 1 : 0 }
+  '
+}
+
 check_ssh_agent_environment() {
   expected="SSH_AUTH_SOCK=/run/user/$(id -u)/ssh-agent"
   systemctl --user show -p Environment --value aoe-dashboard.service \
@@ -466,6 +483,18 @@ check "AoE resolves Figma from the OWN profile" check_aoe_profile_mcp \
   own figma "http://127.0.0.1:3845/mcp"
 check "AoE resolves OWN context from the OWN profile" check_aoe_profile_mcp \
   own own-context "https://mcp.own.casa/mcp"
+check "GitHits uses hosted HTTP" check_toml_value \
+  "$codex_config" "mcp_servers.githits.url" string "https://mcp.githits.com"
+check "figma-session is installed" command -v figma-session
+check "Figma target is manually started" check_manual_unit figma.target
+check "Figma is absent from user boot dependencies" bash -o pipefail -c '
+  units="$(systemctl --user list-dependencies --plain --no-legend default.target)" || exit
+  ! printf "%s\n" "$units" | grep -Eq "(^|[[:space:]])figma([.]target|-[^[:space:]]+[.]service)($|[[:space:]])"
+'
+figma_running=false
+if systemctl --user is-active --quiet figma.target; then
+  figma_running=true
+fi
 for service in \
   figma-virtual-display \
   figma-window-manager \
@@ -473,18 +502,31 @@ for service in \
   figma-vnc \
   figma-novnc
 do
-  check "${service} service is enabled" \
-    systemctl --user is-enabled "${service}.service"
-  check "${service} service is active" \
-    systemctl --user is-active "${service}.service"
+  check "${service} service has no autostart enablement" \
+    check_manual_unit "${service}.service"
+  if "$figma_running"; then
+    check "${service} service is active" \
+      systemctl --user is-active "${service}.service"
+  else
+    check_value "${service} service is stopped" inactive \
+      systemctl --user show "${service}.service" -p ActiveState --value
+  fi
 done
-check "Figma Linux Next MCP responds locally" check_figma_mcp
-check "Figma MCP listens only on loopback" check_loopback_port 3845
-check "Figma VNC listens only on loopback" check_loopback_port 5900
-check "Figma noVNC listens only on loopback" check_loopback_port 6080
-check "Figma VNC password exists" test -s "$figma_state_dir/vnc-password"
-check_value "Figma VNC password mode is 0600" "600" \
-  stat -c %a "$figma_state_dir/vnc-password"
+if "$figma_running"; then
+  check "Figma Linux Next MCP responds locally" check_figma_mcp
+  check "Figma MCP listens only on loopback" check_loopback_port 3845
+  check "Figma VNC listens only on loopback" check_loopback_port 5900
+  check "Figma noVNC listens only on loopback" check_loopback_port 6080
+  check "Figma VNC password exists" test -s "$figma_state_dir/vnc-password"
+else
+  for port in 3845 5900 6080; do
+    check "Stopped Figma leaves port ${port} closed" check_port_closed "$port"
+  done
+fi
+if [ -e "$figma_state_dir/vnc-password" ]; then
+  check_value "Figma VNC password mode is 0600" "600" \
+    stat -c %a "$figma_state_dir/vnc-password"
+fi
 check "AoE Sentry profile selects Codex Sentry" check_toml_value \
   "$aoe_state_dir/profiles/sentry/config.toml" \
   "session.agent_command_override.codex" string "codex --profile sentry"

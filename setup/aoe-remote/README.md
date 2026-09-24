@@ -99,7 +99,8 @@ a separate enforcement boundary.
 The `remote-dev` NixOS host runs Figma Linux Next on an authenticated virtual
 X11 display. Its built-in MCP server binds only to `127.0.0.1:3845`; the `own`
 Codex and AoE profiles connect to that endpoint without Figma REST credentials
-or MCP OAuth. After the host rebuild, forward the loopback noVNC console:
+or MCP OAuth. Start it with `figma-session start` before opening an OWN session
+that needs Figma, then forward the loopback noVNC console:
 
 ```bash
 ssh -N -L 6080:127.0.0.1:6080 microhoffman@remote-dev
@@ -234,28 +235,49 @@ Repository arguments are optional and explicit. No Trail of Bits skill is
 installed in Proof of Presence. Each skill also has an individual installer in
 `setup/agent-skills/` for selective installs and updates.
 
-Initialize GitHits after GitHub CLI authentication:
+Configure hosted GitHits and authenticate your existing GitHits account:
 
 ```bash
 setup/githits/init.sh
 ```
 
-GitHits owns its interactive authentication and generated machine-local
-integration. Dotfiles does not duplicate its MCP or guidance block.
+Dotfiles owns the HTTP MCP transport at `https://mcp.githits.com`. The setup
+script migrates the standard local stdio entry, backs up the user config under
+`~/.local/state/dotfiles/backups/githits`, and starts Codex OAuth with
+`--no-browser`. Complete the printed authorization URL and supply the callback
+URL as requested. This is separate from GitHits CLI authentication. Credentials
+stay machine-local; no subscription is created or changed.
+
+Use `setup/githits/init.sh --configure-only` to defer authentication. On non-Nix
+machines, the script requires Python 3.11+ and `tomlkit`. Existing skills and
+CLI credentials are retained. Do not use upstream `githits init` for Codex,
+since that restores local stdio. Upstream setup remains available for other
+coding tools. Restart or resume sessions individually when convenient: running
+sessions keep their original local processes. A CLI upgrade is not required
+for hosted MCP. Verify the connection in a fresh session using `/mcp` and a
+read-only GitHits tool call.
 
 ## Operate the VM-local Figma desktop
 
-Home Manager starts Xvfb, Openbox, Figma Linux Next, authenticated x11vnc, and
-noVNC as persistent user services. X11 uses a generated Xauthority cookie. VNC
+Home Manager installs Xvfb, Openbox, Figma Linux Next, authenticated x11vnc, and
+noVNC as on-demand user services grouped by `figma.target`. They do not start
+at boot, login, or AoE session creation. X11 uses a generated Xauthority cookie. VNC
 uses a generated password, and both VNC and noVNC bind to loopback only; no
 firewall ports are opened. Reach the console only through the SSH tunnel shown
 above.
 
-The local MCP is read-only by default and starts automatically on port 3845.
+Use `figma-session start`, `figma-session status`, and `figma-session stop` to
+operate the group. Start waits up to 60 seconds for MCP readiness; a timeout
+leaves the desktop available for login or troubleshooting. Stop closes the
+whole group. The verifier accepts a completely stopped group and checks its
+MCP and loopback listeners when running.
+
+The local MCP is read-only by default and starts with the desktop on port 3845.
 Figma write tools remain disabled until explicitly enabled under Figma Linux
 Next Settings → General → MCP integrations. New `own` Codex sessions load the
 local endpoint; existing sessions must be restarted after the configuration
-switch.
+switch. The OWN profiles retain Figma while stopped, so connection errors are
+expected until it is started and the session reconnects.
 
 ## Store or rotate the dashboard passphrase
 

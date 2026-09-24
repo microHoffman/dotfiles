@@ -27,7 +27,7 @@
     port = 42313;
   };
 
-  # Always-on Figma Linux session for localhost MCP access. The graphical
+  # On-demand Figma Linux session for localhost MCP access. The graphical
   # console is loopback-only and reached through an SSH port forward.
   figmaDesktop = {
     enable = true;

@@ -75,7 +75,7 @@
               ];
             }
             ''
-              bash ${../setup/aoe-remote/test-reconcile-config.sh} ${pkgs.lib.getExe agentConfigReconciler}
+              bash ${../setup/aoe-remote/test-reconcile-config.sh} ${pkgs.lib.getExe agentConfigReconciler} ${../setup/githits/init.sh}
               touch "$out"
             '';
 

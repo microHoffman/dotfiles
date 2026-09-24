@@ -87,15 +87,18 @@ repositories and does not try to deduplicate global and repository-local skills.
 
 ## Documentation access
 
-After authenticating GitHub CLI, initialize GitHits with its official
-interactive setup:
+Connect Codex to hosted GitHits and authenticate your existing account:
 
 ```bash
 setup/githits/init.sh
 ```
 
-GitHits owns the machine-local integration it generates. No duplicate GitHits
-wrapper skill or hand-written GitHits block is maintained in `AGENTS.md`.
+Dotfiles manages the hosted MCP connection; OAuth credentials remain machine-local.
+The script preserves existing GitHits skills and CLI credentials. On non-Nix
+machines it requires Python 3.11+ and `tomlkit`; Nix provides the reconciler.
+Use `--configure-only` to defer OAuth. Local stdio sessions keep working until
+exited and resumed. Do not rerun upstream `githits init` for Codex: it installs
+the local stdio transport. Other coding tools can still use upstream setup.
 
 ## Useful guides
 

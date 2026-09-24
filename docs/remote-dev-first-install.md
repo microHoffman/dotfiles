@@ -268,7 +268,7 @@ glab auth login --hostname gitlab.tomatom.cz --git-protocol ssh
 ```
 
 Install Codex/AoE configuration and the desired global skills, then initialize
-GitHits:
+hosted GitHits through Codex OAuth (separate from CLI authentication):
 
 ```bash
 cd ~/dotfiles
@@ -276,6 +276,12 @@ setup/aoe-remote/install-config.sh
 setup/agent-skills/install-all-global.sh
 setup/githits/init.sh
 ```
+
+Existing GitHits skills are preserved. The hosted MCP connection is managed
+by dotfiles; upstream `githits init` configures local stdio for Codex and should
+not be used to refresh this connection. Use `--configure-only` to defer login.
+Figma starts only with `figma-session start`; use `figma-session stop` afterward
+to release its desktop, display, and VNC resources.
 
 Repository-specific skills are installed only after those repositories are
 cloned. If they already exist, use `setup/agent-skills/install-all.sh` with
