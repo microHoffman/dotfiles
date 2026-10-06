@@ -40,11 +40,18 @@ setup/agent-skills/install-all-global.sh
 | `grill-with-docs` | `mattpocock/skills` | `install-grill-with-docs.sh` |
 | `improve-codebase-architecture` | `mattpocock/skills` | `install-improve-codebase-architecture.sh` |
 | `research` | `mattpocock/skills` | `install-research.sh` |
-| `resolving-merge-conflicts` | `mattpocock/skills` | `install-resolving-merge-conflicts.sh` |
+| GitHits MCP, code, package, onboarding | `githits-com/githits-cli` | `install-githits-skills.sh` |
 | `handoff` | `mattpocock/skills` | `install-handoff.sh` |
 | `teach` | `mattpocock/skills` | `install-teach.sh` |
 | Sentry Codex plugin, skills, and MCP | `getsentry/plugin-codex` | `install-sentry-plugin.sh` |
 | Codex SEO suite | `AgriciDaniel/codex-seo` | `install-codex-seo.sh` |
+| Native Claude Sentry and SEO plugins | `getsentry/plugin-claude`, `AgriciDaniel/claude-seo` | `install-claude-plugins.sh` |
+
+Shared skill installers target Codex and Claude Code. Update the maintained
+Matt Pocock set with `install-matt-pocock.sh`; it archives and removes the
+upstream-retired `resolving-merge-conflicts` skill. Shared instructions, generated
+Claude MCP configuration, and both harnesses' launch presets are documented in
+[`setup/agent-config/README.md`](setup/agent-config/README.md).
 
 The remote-dev Home Manager profile includes `glab`. After `glab auth login`
 for `gitlab.tomatom.cz`, `gitlab-create-mr` prefers that authenticated CLI and
@@ -95,10 +102,11 @@ setup/githits/init.sh
 ```
 
 Dotfiles manages the hosted MCP connection; OAuth credentials remain machine-local.
-The script preserves existing GitHits skills and CLI credentials. On non-Nix
-machines it requires Python 3.11+ and `tomlkit`; Nix provides the reconciler.
-Use `--configure-only` to defer OAuth. Local stdio sessions keep working until
-exited and resumed. Do not rerun upstream `githits init` for Codex: it installs
+The script installs the four shared GitHits skills and preserves CLI credentials.
+On non-Nix machines it requires Python 3.11+ and `tomlkit`; Nix provides the
+reconciler. Full setup also needs npx. Use `--configure-only` to update only MCP
+configuration, deferring skills and OAuth. Local stdio sessions keep working
+until exited and resumed. Do not rerun upstream `githits init` for Codex: it installs
 the local stdio transport. Other coding tools can still use upstream setup.
 
 ## Useful guides
@@ -114,7 +122,7 @@ setup/agent-skills/install-activecollab.sh
 
 The installer uses mise to select the latest stable CLI release in
 `~/.config/mise/conf.d/activecollab-cli.toml`, verifies that it is version 0.3.1
-or newer, and installs the skill globally for all supported agents. Rerun the
+or newer, and installs the skill globally for Codex and Claude Code. Rerun the
 same command to update both. To install a specific compatible CLI release, set
 `ACTIVECOLLAB_CLI_VERSION` for that invocation.
 

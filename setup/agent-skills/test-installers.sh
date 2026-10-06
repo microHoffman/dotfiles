@@ -125,7 +125,7 @@ EOF
     bash "${installer_dir}/install-activecollab.sh" >/dev/null
 
   grep -Fq 'mise age=0d latest github:microHoffman/activecollab-cli' "$log"
-  grep -Fq 'npx -y skills@latest add https://github.com/microHoffman/agent-skills --skill activecollab --agent * --global --yes' "$log"
+  grep -Fq 'npx -y skills@latest add https://github.com/microHoffman/agent-skills --skill activecollab --agent codex --agent claude-code --global --yes' "$log"
 
   mkdir -p "${home_dir}/.agents/skills/activecollab"
   : >"${home_dir}/.agents/skills/activecollab/SKILL.md"

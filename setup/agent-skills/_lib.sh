@@ -19,7 +19,7 @@ install_global_skills() {
   done
   npx -y skills@latest add "$source" \
     "${skill_args[@]}" \
-    --agent '*' \
+    --agent codex --agent claude-code \
     --global \
     --yes
 }

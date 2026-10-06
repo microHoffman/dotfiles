@@ -21,6 +21,9 @@ if ! "$configure_only" && ! command -v codex >/dev/null 2>&1; then
   printf 'init-githits: missing required command: codex\n' >&2
   exit 1
 fi
+if ! "$configure_only"; then
+  "${script_dir}/../agent-skills/install-githits-skills.sh"
+fi
 
 umask 077
 temporary_dir="$(mktemp -d)"

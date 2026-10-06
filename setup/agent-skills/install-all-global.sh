@@ -42,23 +42,16 @@ run_step "OpenZeppelin smart-contract skills" install_global_skills \
   develop-secure-contracts \
   upgrade-solidity-contracts
 
-run_step "Matt Pocock engineering and productivity skills" install_global_skills \
-  https://github.com/mattpocock/skills \
-  diagnosing-bugs \
-  code-review \
-  codebase-design \
-  domain-modeling \
-  grilling \
-  grill-me \
-  grill-with-docs \
-  improve-codebase-architecture \
-  research \
-  resolving-merge-conflicts \
-  handoff \
-  teach
+run_step "Matt Pocock engineering and productivity skills" \
+  "${script_dir}/install-matt-pocock.sh"
+
+run_step "Shared GitHits skills" "${script_dir}/install-githits-skills.sh"
 
 run_step "Official Sentry Codex plugin" \
   "${script_dir}/install-sentry-plugin.sh"
+
+run_step "Native Claude Sentry and SEO plugins" \
+  "${script_dir}/install-claude-plugins.sh"
 
 run_step "Codex SEO suite" \
   "${script_dir}/install-codex-seo.sh"
