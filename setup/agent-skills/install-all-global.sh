@@ -29,7 +29,11 @@ run_step "ActiveCollab CLI and skill" \
 run_step "agent-browser CLI, browser, and skill" \
   "${script_dir}/install-agent-browser.sh"
 
-run_step "Orca CLI skill" "${script_dir}/install-orca-cli.sh"
+run_step "Orca CLI, orchestration, and workspace setup skills" install_global_skills \
+  https://github.com/stablyai/orca \
+  orca-cli \
+  orchestration \
+  orca-per-workspace-env
 
 run_step "microHoffman agent skills" install_global_skills \
   https://github.com/microHoffman/agent-skills \

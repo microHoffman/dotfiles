@@ -26,6 +26,8 @@ setup/agent-skills/install-all-global.sh
 | `activecollab` | `microHoffman/agent-skills` | `install-activecollab.sh` |
 | `agent-browser` CLI + skill | `vercel-labs/agent-browser` | `install-agent-browser.sh` |
 | `orca-cli` skill | `stablyai/orca` | `install-orca-cli.sh` |
+| `orchestration` | `stablyai/orca` | `install-orchestration.sh` |
+| `orca-per-workspace-env` | `stablyai/orca` | `install-orca-per-workspace-env.sh` |
 | `create-pull-request` | `microHoffman/agent-skills` | `install-create-pull-request.sh` |
 | `github-issues` | `microHoffman/agent-skills` | `install-github-issues.sh` |
 | `gitlab-create-mr` | `microHoffman/agent-skills` | `install-gitlab-create-mr.sh` |

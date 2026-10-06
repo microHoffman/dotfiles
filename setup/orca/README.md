@@ -21,11 +21,22 @@ From the dotfiles root:
 ```bash
 setup/orca/install.sh
 setup/agent-skills/install-orca-cli.sh
+setup/agent-skills/install-orchestration.sh
+setup/agent-skills/install-orca-per-workspace-env.sh
 scripts/remote-dev/rebuild.sh
 systemctl --user start orca-runtime.service
 setup/orca/configure.sh
 scripts/remote-dev/verify-orca.sh
 ```
+
+The three skill installers target Codex and Claude Code on the machine where
+they run. For remote sessions, run them on the VM. `install-all-global.sh`
+also installs this set: `orca-cli` for browser/worktree/terminal operations,
+`orchestration` for coordinated agent tasks, and `orca-per-workspace-env` for
+project-specific `orca.yaml` setup recipes. Start fresh agent sessions after
+installation. To use orchestration, enable it under Settings → Experimental
+for the runtime hosting the agents; installing skills does not change that
+runtime setting or start workers.
 
 The installer downloads the version and architecture-specific checksum in
 `release.json`, verifies the AppImage, extracts it without FUSE, and checks the
