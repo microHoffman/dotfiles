@@ -29,6 +29,8 @@ run_step "ActiveCollab CLI and skill" \
 run_step "agent-browser CLI, browser, and skill" \
   "${script_dir}/install-agent-browser.sh"
 
+run_step "Orca CLI skill" "${script_dir}/install-orca-cli.sh"
+
 run_step "microHoffman agent skills" install_global_skills \
   https://github.com/microHoffman/agent-skills \
   create-pull-request \

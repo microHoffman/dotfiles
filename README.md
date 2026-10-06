@@ -25,6 +25,7 @@ setup/agent-skills/install-all-global.sh
 | --- | --- | --- |
 | `activecollab` | `microHoffman/agent-skills` | `install-activecollab.sh` |
 | `agent-browser` CLI + skill | `vercel-labs/agent-browser` | `install-agent-browser.sh` |
+| `orca-cli` skill | `stablyai/orca` | `install-orca-cli.sh` |
 | `create-pull-request` | `microHoffman/agent-skills` | `install-create-pull-request.sh` |
 | `github-issues` | `microHoffman/agent-skills` | `install-github-issues.sh` |
 | `gitlab-create-mr` | `microHoffman/agent-skills` | `install-gitlab-create-mr.sh` |
@@ -193,6 +194,21 @@ Portable, non-secret setup files live in
 [`setup/aoe-remote`](setup/aoe-remote). The complete approval-gated NixOS,
 Tailscale Funnel, systemd, Android, workflow, and recovery guide is
 [`docs/remote-codex-aoe.md`](docs/remote-codex-aoe.md).
+
+### Orca remote runtime
+
+Orca runs alongside AoE and serves desktop, browser, and mobile clients over
+Tailscale. Codex is the default; Claude Code is installed with optional login.
+The pinned portable installer, one-time configuration, pairing helper, and
+upgrade/rollback guide live in [`setup/orca`](setup/orca).
+
+```bash
+setup/orca/install.sh
+```
+
+The remote-dev Home Manager configuration owns the user service and separate
+virtual display. After rebuilding and starting the service, run
+`setup/orca/configure.sh`, then `scripts/remote-dev/verify-orca.sh`.
 
 ### remote dev server
 

@@ -49,6 +49,13 @@ if [ "${REMOTE_DEV_VERIFY_AOE:-0}" = "1" ]; then
   fi
 fi
 
+if [ "${REMOTE_DEV_VERIFY_ORCA:-0}" = "1" ]; then
+  printf '\nOrca verification:\n'
+  if ! "${script_dir}/verify-orca.sh"; then
+    failures=$((failures + 1))
+  fi
+fi
+
 if [ "${failures}" -ne 0 ]; then
   printf '\n%s checks failed.\n' "${failures}" >&2
   exit 1

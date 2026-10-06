@@ -1,0 +1,13 @@
+{
+  "version": "1.4.220",
+  "assets": {
+    "x86_64": {
+      "name": "orca-linux.AppImage",
+      "sha256": "aedd0fa875f6d68698ed0cf67e0b4031cd135c9703d031c4a5c1bf38f86927da"
+    },
+    "aarch64": {
+      "name": "orca-linux-arm64.AppImage",
+      "sha256": "569047ff0c4bdc334939cd5e9fb845c1e3a79026da0e80d7bd04592179897f0f"
+    }
+  }
+}

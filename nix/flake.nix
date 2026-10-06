@@ -50,6 +50,23 @@
       };
 
       checks.${system} = {
+        orca-installer =
+          pkgs.runCommand "orca-installer-check"
+            {
+              nativeBuildInputs = [
+                pkgs.bash
+                pkgs.coreutils
+                pkgs.gnugrep
+                pkgs.gnused
+                pkgs.jq
+                pkgs.util-linux
+              ];
+            }
+            ''
+              bash ${../setup/orca/test-install.sh} ${../setup/orca/install.sh}
+              touch "$out"
+            '';
+
         codex-acp-installer =
           pkgs.runCommand "codex-acp-installer-check"
             {

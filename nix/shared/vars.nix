@@ -27,6 +27,13 @@
     port = 42313;
   };
 
+  # Always-on private runtime, shared by desktop, web, and mobile clients.
+  orcaRuntime = {
+    enable = true;
+    port = 6768;
+    display = ":100";
+  };
+
   # On-demand Figma Linux session for localhost MCP access. The graphical
   # console is loopback-only and reached through an SSH port forward.
   figmaDesktop = {

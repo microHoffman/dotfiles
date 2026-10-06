@@ -77,6 +77,7 @@
         ../../modules/home/git.nix
         ../../modules/home/mise.nix
         ../../modules/home/neovim.nix
+        ../../modules/home/orca-runtime.nix
         ../../modules/home/ssh-agent.nix
         ../../modules/home/tmux.nix
         ../../modules/home/zsh.nix

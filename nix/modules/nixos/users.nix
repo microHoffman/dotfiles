@@ -10,7 +10,7 @@
     description = vars.fullName;
     home = vars.homeDirectory;
     createHome = true;
-    linger = if vars.aoeDashboard.enableUserLinger then true else null;
+    linger = if vars.aoeDashboard.enableUserLinger || vars.orcaRuntime.enable then true else null;
     shell = pkgs.zsh;
     hashedPassword = "!";
     extraGroups = [
