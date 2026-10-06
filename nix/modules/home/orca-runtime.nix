@@ -53,7 +53,11 @@ in
 {
   config = lib.mkIf cfg.enable {
     # Authentication is optional. The package alone makes Claude ready for later use.
-    home.packages = [ pkgs.claude-code ];
+    home.packages = [
+      (pkgs.claude-code.override {
+        manifest = lib.importJSON ../../../setup/claude-code/release.json;
+      })
+    ];
 
     assertions = [
       {
