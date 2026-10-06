@@ -2,7 +2,7 @@
 set -euo pipefail
 
 if [ "$#" -ne 0 ]; then
-  printf 'Usage: %s\nApplies Codex-first, Manual agent launch defaults to the running local Orca runtime.\n' "${0##*/}" >&2
+  printf 'Usage: %s\nApplies Codex-first launch defaults and Codex/Claude preset Quick Commands to the local Orca runtime.\n' "${0##*/}" >&2
   exit 2
 fi
 script_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"

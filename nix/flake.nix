@@ -50,6 +50,25 @@
       };
 
       checks.${system} = {
+        claude-profiles =
+          pkgs.runCommand "claude-profiles-check"
+            {
+              nativeBuildInputs = [
+                pkgs.python3
+                pkgs.bash
+              ];
+            }
+            ''
+              PYTHONDONTWRITEBYTECODE=1 python3 ${../setup/agent-config}/test-claude-profiles.py
+              touch "$out"
+            '';
+        orca-configure =
+          pkgs.runCommand "orca-configure-check" { nativeBuildInputs = [ pkgs.nodejs_24 ]; }
+            ''
+              node --test ${../setup/orca}/test-configure.cjs
+              touch "$out"
+            '';
+
         orca-installer =
           pkgs.runCommand "orca-installer-check"
             {

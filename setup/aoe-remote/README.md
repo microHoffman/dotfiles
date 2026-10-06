@@ -15,6 +15,21 @@ with an explicit `~/.local` prefix. Existing installations are preserved.
 setup/aoe-remote/install-user-tools.sh codex aoe codex-acp
 ```
 
+Codex installs the version pinned in `codex-release.json` using OpenAI's
+official installer. Its script checksum is verified before execution; the
+upstream installer verifies the downloaded release archives. Existing installs
+are preserved unless explicitly updated:
+
+```bash
+setup/aoe-remote/install-user-tools.sh --update --yes codex
+```
+
+`--yes` skips the interactive installer review and is only supported for the
+checksum-verified Codex path. For a future release, update both the version and
+the reviewed official installer checksum. A changed upstream installer fails
+closed until that checksum is reviewed. Codex remains a user install; Nix
+activation does not update it or require authentication.
+
 `codex-acp` requires Node.js 20 or newer. Update it intentionally, outside
 Home Manager activation, with:
 
@@ -242,15 +257,17 @@ setup/githits/init.sh
 ```
 
 Dotfiles owns the HTTP MCP transport at `https://mcp.githits.com`. The setup
-script migrates the standard local stdio entry, backs up the user config under
+script installs the shared GitHits skills, migrates the standard local stdio entry,
+backs up the user config under
 `~/.local/state/dotfiles/backups/githits`, and starts Codex OAuth with
 `--no-browser`. Complete the printed authorization URL and supply the callback
 URL as requested. This is separate from GitHits CLI authentication. Credentials
 stay machine-local; no subscription is created or changed.
 
-Use `setup/githits/init.sh --configure-only` to defer authentication. On non-Nix
-machines, the script requires Python 3.11+ and `tomlkit`. Existing skills and
-CLI credentials are retained. Do not use upstream `githits init` for Codex,
+Use `setup/githits/init.sh --configure-only` to defer skill installation and
+authentication. On non-Nix machines, the script requires Python 3.11+ and
+`tomlkit`; full setup also needs npx. CLI credentials are retained.
+Do not use upstream `githits init` for Codex,
 since that restores local stdio. Upstream setup remains available for other
 coding tools. Restart or resume sessions individually when convenient: running
 sessions keep their original local processes. A CLI upgrade is not required

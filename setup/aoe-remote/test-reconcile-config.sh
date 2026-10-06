@@ -328,7 +328,7 @@ model = "keep-model"
 command = "npx"
 args = ["-y", "githits@latest", "mcp", "start"]
 TOML
-  for attempt in 1 2; do
+  for _attempt in 1 2; do
     PATH="${temporary_dir}/bin:$PATH" CODEX_HOME="${temporary_dir}/codex" \
       XDG_STATE_HOME="${temporary_dir}/state" bash "$2" --configure-only
   done
@@ -349,3 +349,47 @@ assert any('command = "npx"' in p.read_text() for p in backups)
 PY
 fi
 printf 'GitHits migration and setup tests passed\n'
+
+# Claude settings must stay mutable for Orca's hook installer and local settings.
+json_source="${temporary_dir}/claude-source.json"
+json_target="${temporary_dir}/claude/settings.json"
+mkdir -p "$(dirname -- "$json_target")"
+printf '%s\n' '{"permissions":{"defaultMode":"auto"}}' >"$json_source"
+cat >"$json_target" <<'JSON'
+{"hooks":{"Stop":[{"hooks":[{"type":"command","command":"orca-hook"}]}]},
+ "statusLine":{"type":"command","command":"orca-status"},
+ "permissions":{"ask":["Bash(git push *)"],"defaultMode":"default"},
+ "pluginConfigs":{"local-plugin":{"enabled":true}}}
+JSON
+chmod 600 "$json_target"
+"$reconciler" --format json --source "$json_source" \
+  --target "$json_target" --lock "${json_target}.lock"
+python3 - "$json_target" <<'PY'
+import json
+import pathlib
+import sys
+p = pathlib.Path(sys.argv[1])
+data = json.loads(p.read_text())
+assert data['permissions'] == {
+    'ask': ['Bash(git push *)'], 'defaultMode': 'auto',
+}
+assert data['hooks']['Stop'][0]['hooks'][0]['command'] == 'orca-hook'
+assert data['statusLine']['command'] == 'orca-status'
+assert data['pluginConfigs']['local-plugin']['enabled'] is True
+assert p.stat().st_mode & 0o777 == 0o600
+PY
+before_json="$(stat -c '%i:%Y' "$json_target")"
+"$reconciler" --format json --source "$json_source" \
+  --target "$json_target" --lock "${json_target}.lock"
+test "$before_json" = "$(stat -c '%i:%Y' "$json_target")"
+for invalid_json in '{"broken":' '[]'; do
+  printf '%s\n' "$invalid_json" >"$json_target"
+  json_hash="$(sha256sum "$json_target")"
+  if "$reconciler" --format json --source "$json_source" \
+    --target "$json_target" --lock "${json_target}.lock"; then
+    printf 'Expected invalid JSON target to be rejected\n' >&2
+    exit 1
+  fi
+  test "$json_hash" = "$(sha256sum "$json_target")"
+done
+printf 'Claude JSON reconciliation tests passed\n'

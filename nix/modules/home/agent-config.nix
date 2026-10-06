@@ -15,6 +15,12 @@ let
   '';
   codexOwnTemplate = ../../../setup/aoe-remote/own.config.toml;
   codexSentryTemplate = ../../../setup/aoe-remote/sentry.config.toml;
+  claudeProfiles =
+    pkgs.runCommand "claude-agent-profiles" { nativeBuildInputs = [ pkgs.python3 ]; }
+      ''
+        python3 ${../../../setup/agent-config/render-claude.py} \
+          --codex-base ${codexTemplate} --codex-own ${codexOwnTemplate} --output "$out"
+      '';
   aoeTemplate = ../../../setup/aoe-remote/aoe-config.toml;
   aoeSeoTemplate = ../../../setup/aoe-remote/profiles/seo/config.toml;
   aoeOwnTemplate = ../../../setup/aoe-remote/profiles/own/config.toml;
@@ -34,6 +40,16 @@ let
     name = "reconcile-managed-agent-configs";
     runtimeInputs = [ reconciler ];
     text = ''
+      reconcile-agent-config --format json \
+        --source ${claudeProfiles}/user-mcp.json \
+        --target ${config.home.homeDirectory}/.claude.json \
+        --lock ${config.home.homeDirectory}/.claude.json.dotfiles.lock
+
+      reconcile-agent-config --format json \
+        --source ${../../../setup/agent-config/claude-settings.json} \
+        --target ${config.home.homeDirectory}/.claude/settings.json \
+        --lock ${config.home.homeDirectory}/.claude/settings.json.lock
+
       reconcile-agent-config \
         --source ${codexTemplate} \
         --target ${codexConfig} \
@@ -101,6 +117,16 @@ in
   home.file.".codex/AGENTS.md" = {
     source = ../../../setup/agent-config/AGENTS.md;
     force = true;
+  };
+
+  # Claude's user-wide entry point remains CLAUDE.md, even with native support
+  # for project AGENTS.md. Both harnesses consume the same instruction source.
+  home.file.".claude/CLAUDE.md".source = ../../../setup/agent-config/AGENTS.md;
+
+  xdg.configFile."agent-profiles/claude".source = claudeProfiles;
+  home.file.".local/bin/claude-profile" = {
+    source = ../../../setup/agent-config/claude-profile;
+    executable = true;
   };
 
   xdg.configFile."agent-of-empires/profiles/sentry/mcp.json" = {

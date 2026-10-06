@@ -2,6 +2,7 @@ import argparse
 import copy
 import fcntl
 import hashlib
+import json
 import os
 from pathlib import Path
 import stat
@@ -29,12 +30,13 @@ class TargetChanged(ReconcileError):
 def parse_args():
     parser = argparse.ArgumentParser(
         description=(
-            "Merge an authoritative TOML overlay into a mutable config."
+            "Merge a TOML or JSON overlay into a mutable config."
         )
     )
     parser.add_argument("--source", type=Path, required=True)
     parser.add_argument("--target", type=Path, required=True)
     parser.add_argument("--lock", type=Path, required=True)
+    parser.add_argument("--format", choices=["toml", "json"], default="toml")
     parser.add_argument(
         "--delete-if-equals",
         action="append",
@@ -94,6 +96,19 @@ def parse_toml(raw_content, path, label):
 
 def is_table(value):
     return isinstance(value, (Mapping, MutableMapping))
+
+
+def parse_document(raw_content, path, label, file_format):
+    if file_format == "toml":
+        return parse_toml(raw_content, path, label)
+    try:
+        document = json.loads(raw_content)
+    except (UnicodeDecodeError, json.JSONDecodeError) as error:
+        message = f"invalid {label} JSON: {path}: {error}"
+        raise ReconcileError(message) from error
+    if not isinstance(document, dict):
+        raise ReconcileError(f"{label} JSON must be an object: {path}")
+    return document
 
 
 def merge_tables(target, source):
@@ -267,13 +282,15 @@ def exclusive_lock(path):
             os.close(descriptor)
 
 
-def reconcile_once(source_document, target_path, delete_rules):
+def reconcile_once(source_document, target_path, delete_rules, file_format):
     original_content, target_stat = read_target(target_path)
     if original_content is None:
-        target_document = tomlkit.document()
+        target_document = tomlkit.document() if file_format == "toml" else {}
         mode = 0o600
     else:
-        target_document = parse_toml(original_content, target_path, "target")
+        target_document = parse_document(
+            original_content, target_path, "target", file_format
+        )
         mode = stat.S_IMODE(target_stat.st_mode)
 
     changed = merge_tables(target_document, source_document)
@@ -282,8 +299,11 @@ def reconcile_once(source_document, target_path, delete_rules):
     if not changed:
         return False
 
-    rendered = tomlkit.dumps(target_document).encode("utf-8")
-    parse_toml(rendered, target_path, "merged")
+    rendered = (
+        tomlkit.dumps(target_document) if file_format == "toml"
+        else json.dumps(target_document, indent=2) + "\n"
+    ).encode("utf-8")
+    parse_document(rendered, target_path, "merged", file_format)
 
     if target_fingerprint(target_path) != fingerprint(original_content):
         message = f"target changed during reconciliation: {target_path}"
@@ -293,9 +313,14 @@ def reconcile_once(source_document, target_path, delete_rules):
     return True
 
 
-def reconcile(source_path, target_path, lock_path, raw_delete_rules):
+def reconcile(source_path, target_path, lock_path, raw_delete_rules,
+              file_format="toml"):
     source_content, _ = read_regular_file(source_path, "source")
-    source_document = parse_toml(source_content, source_path, "source")
+    source_document = parse_document(
+        source_content, source_path, "source", file_format
+    )
+    if file_format == "json" and raw_delete_rules:
+        raise ReconcileError("--delete-if-equals only supports TOML")
     delete_rules = parse_delete_rules(raw_delete_rules)
 
     target_path.parent.mkdir(mode=0o700, parents=True, exist_ok=True)
@@ -306,6 +331,7 @@ def reconcile(source_path, target_path, lock_path, raw_delete_rules):
                     source_document,
                     target_path,
                     delete_rules,
+                    file_format,
                 )
                 action = "Updated" if changed else "Unchanged"
                 print(f"{action} managed config: {target_path}")
@@ -327,6 +353,7 @@ def main():
             args.target,
             args.lock,
             args.delete_if_equals,
+            args.format,
         )
     except ReconcileError as error:
         print(f"reconcile-agent-config: {error}", file=sys.stderr)

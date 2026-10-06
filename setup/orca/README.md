@@ -10,6 +10,10 @@ Codex is the default. Claude Code is installed and ready for later use, but
 Claude credentials do not block the service or Codex. Authenticate Claude only
 when you intend to use it.
 
+Agent CLI pins live in `../aoe-remote/codex-release.json` (official Codex user
+installer) and `../claude-code/release.json` (Nix-managed Claude Code).
+Shared instruction and Claude permission settings live in `../agent-config/`.
+
 ## Install
 
 From the dotfiles root:
@@ -143,6 +147,29 @@ Use Orca's `~/orca/workspaces` workspace location, outside dotfiles, and set eac
 repository's base branch before creating worktrees. Repository credentials and
 toolchains must be available on the VM. Existing Codex profiles can still be
 launched from an Orca terminal, for example `codex --profile own`.
+
+`setup/orca/configure.sh` also upserts eight Global Quick Commands on the VM:
+**Codex · Default**, **Codex · OWN**, **Codex · SEO**, and **Codex · Sentry**.
+The matching **Claude** commands run `claude-profile default|own|seo|sentry`.
+Use the tab-bar Quick Commands menu to launch one in a fresh terminal in the
+selected workspace. They run `codex` or `codex --profile <name>` and therefore
+use the VM's native Codex configuration overlays. They do not switch an already
+running agent's profile or affect ordinary Codex launches. Commands entered
+through a terminal's context menu are inserted into that terminal instead;
+use a fresh shell, not an agent prompt. Other saved commands are preserved.
+Their **Saved on** host is the VM, so paired desktop/mobile clients can access
+them. Codex uses native profiles; Claude uses generated settings/MCP overlays
+and native plugins. See [shared agent setup](../agent-config/README.md).
+
+## Chat UI
+
+No dotfiles change is required to use terminal-backed Chat UI. On desktop,
+choose Settings → Experimental → Chat UI and optionally make it the default
+view. On mobile, choose Settings → Chat UI → Open sessions in Chat UI; the
+preference is per device. Remote/SSH sessions use terminal-backed Chat UI.
+The separate updated structured native chat is for eligible local sessions.
+These profile shortcuts launch terminal agents and can be viewed through the
+terminal-backed chat surface.
 
 No `orca.yaml` is required. For a pnpm application, an optional repository-root
 configuration could be:

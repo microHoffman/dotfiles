@@ -1,0 +1,28 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+profile="${1:-default}"
+if [ "$#" -gt 0 ]; then shift; fi
+case "$profile" in
+  default|own|seo|sentry) ;;
+  *) printf 'Usage: claude-profile default|own|seo|sentry [Claude arguments...]\n' >&2; exit 2 ;;
+esac
+config_dir="${AGENT_PROFILE_CONFIG_DIR:-${XDG_CONFIG_HOME:-${HOME}/.config}/agent-profiles/claude}"
+settings="${config_dir}/${profile}.settings.json"
+if [ ! -f "$settings" ]; then
+  printf 'Missing Claude preset: %s. Run setup/agent-config/configure-claude.sh or rebuild dotfiles.\n' "$settings" >&2
+  exit 1
+fi
+args=()
+if [ "$profile" = seo ]; then
+  export CLAUDE_SEO_DATA_DIR="${XDG_DATA_HOME:-${HOME}/.local/share}/claude-seo"
+  if [ -d /run/current-system/sw/share/nix-ld/lib ]; then
+    export LD_LIBRARY_PATH="/run/current-system/sw/share/nix-ld/lib${LD_LIBRARY_PATH:+:${LD_LIBRARY_PATH}}"
+  fi
+fi
+if [ "$profile" = own ]; then
+  args+=(--mcp-config "${config_dir}/own.mcp.json")
+fi
+# A non-variadic flag ends --mcp-config's file list before user arguments.
+args+=(--settings "$settings")
+exec claude "${args[@]}" "$@"

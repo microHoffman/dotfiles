@@ -1,4 +1,4 @@
-# Global Codex Instructions
+# Shared Agent Instructions
 
 When using Plan mode or otherwise asking the user for required input, wait for
 the answer. Do not auto-resolve a question unless the user explicitly asks for
@@ -26,9 +26,17 @@ unclear, ask before changing persistent system or host configuration.
 
 ## Browser Automation
 
-Use `agent-browser` for ad-hoc website interaction, authenticated browsing,
-data extraction, screenshots, and exploratory smoke testing. Run
-`agent-browser --help` for its current commands.
+This routing takes precedence over broad browser-tool preferences in installed
+skills, including the `agent-browser` skill's preference for itself:
+
+- In an Orca-managed workspace, use the `orca-cli` skill and Orca's embedded
+  browser for ad-hoc page interaction, screenshots, and exploratory testing.
+  Also use it whenever the user explicitly targets an Orca browser tab.
+- Outside Orca, or when the target is an external browser or Electron app, use
+  `agent-browser`. Run `agent-browser --help` for its current commands. Keep
+  browser sessions separate; do not assume their cookies or tab IDs are shared.
+- Use Computer Use only when the task needs OS/window interaction that the
+  relevant CLI, filesystem, or API cannot perform.
 
 If an agent-browser command is blocked by the Codex sandbox's runtime socket,
 local-binding, or network restrictions, retry that command with scoped
@@ -39,7 +47,7 @@ missing shared libraries or browser-install errors as host setup failures.
 Use a repository's existing `@playwright/test` setup when creating or updating
 repeatable E2E tests that belong in the codebase, or when debugging its existing
 Playwright suite. Keep committed Playwright tests and configuration as the
-project's regression-test layer; `agent-browser` does not replace them.
+project's regression-test layer; neither interactive browser tool replaces them.
 
 ## Notion write confirmation
 
