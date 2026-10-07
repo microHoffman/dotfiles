@@ -4,6 +4,7 @@ const commands = [
   ['own', 'Codex · OWN', 'codex --profile own'],
   ['seo', 'Codex · SEO', 'codex --profile seo'],
   ['sentry', 'Codex · Sentry', 'codex --profile sentry'],
+  ['closer', 'Codex · Closer', 'codex --profile closer'],
 ].map(([name, label, command]) => ({
   id: `dotfiles-codex-${name}`,
   label,
@@ -25,7 +26,7 @@ async function configure(client) {
     await client.call('settings.getTerminalQuickCommands');
   const missing = commands.filter((command) => !existing.some((item) => item.id === command.id));
   if (existing.length + missing.length > 40) {
-    throw new Error('Not enough Quick Command slots for the eight agent profile shortcuts');
+    throw new Error(`Not enough Quick Command slots for the ${commands.length} agent profile shortcuts`);
   }
   const { result: { settings: current } } = await client.call('settings.get');
   await client.call('settings.update', {
@@ -63,7 +64,7 @@ async function configure(client) {
     }
   }
   console.log('Orca configured: Codex default, Manual launch arguments, agent status hooks enabled.');
-  console.log('Quick Commands saved on this host: Codex Default, OWN, SEO, Sentry.');
+  console.log('Quick Commands saved on this host: Codex Default, OWN, SEO, Sentry, Closer.');
   console.log('Claude Quick Commands: Default, OWN, SEO, Sentry (native Claude presets).');
   console.log('Claude is available without logging in; authenticate it only when you want to use it.');
 }

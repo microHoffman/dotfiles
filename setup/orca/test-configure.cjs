@@ -44,10 +44,11 @@ test('profiles use native Codex flags and preserve user commands and environment
   const client = runtime([custom]);
   await configure(client);
   await configure(client);
-  assert.equal(client.state.commands.length, 9);
+  assert.equal(client.state.commands.length, 10);
   assert.deepEqual(client.state.commands[0], custom);
   assert.deepEqual(client.state.commands.slice(1).map((entry) => entry.command), [
     'codex', 'codex --profile own', 'codex --profile seo', 'codex --profile sentry',
+    'codex --profile closer',
     'claude-profile default', 'claude-profile own', 'claude-profile seo', 'claude-profile sentry',
   ]);
   assert.deepEqual(client.state.settings.disabledTuiAgents, ['other']);

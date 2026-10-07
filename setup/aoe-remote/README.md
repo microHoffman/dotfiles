@@ -195,7 +195,7 @@ codex \
   mcp login own-context
 ```
 
-Three optional profiles are installed:
+Four optional Codex profiles are installed:
 
 - `codex --profile seo` enables the local Codex SEO suite, except integrations
   that require separately configured DataForSEO, Firecrawl, Google, or Gemini
@@ -204,6 +204,21 @@ Three optional profiles are installed:
   Figma Linux Next MCP server.
 - `codex --profile sentry` enables Sentry's official Codex plugin, all of its
   bundled skills, and its hosted MCP server.
+- `codex --profile closer` enables [PostHog MCP](https://posthog.com/docs/model-context-protocol/codex)
+  at `https://mcp.posthog.com/mcp`. Its server configuration lives only in
+  `closer.config.toml`, so other profiles do not load it. Orca's **Codex · Closer**
+  Quick Command launches this profile.
+
+Authenticate PostHog once per machine with native OAuth. As with OWN, MCP
+management commands need a one-off server override:
+
+```bash
+codex -c 'mcp_servers.posthog.url="https://mcp.posthog.com/mcp"' mcp login posthog
+```
+
+On a headless host, forward the configured callback port (`1455`) as described
+above before opening the authorization URL locally. Credentials stay outside
+dotfiles. PostHog routes the account to its US or EU data region automatically.
 
 AoE profiles named `seo`, `own`, and `sentry` launch Codex with those profile
 flags in tmux mode. Use `aoe -p seo`, `aoe -p own`, or `aoe -p sentry`; each AoE

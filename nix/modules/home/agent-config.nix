@@ -15,6 +15,7 @@ let
   '';
   codexOwnTemplate = ../../../setup/aoe-remote/own.config.toml;
   codexSentryTemplate = ../../../setup/aoe-remote/sentry.config.toml;
+  codexCloserTemplate = ../../../setup/aoe-remote/closer.config.toml;
   claudeProfiles =
     pkgs.runCommand "claude-agent-profiles" { nativeBuildInputs = [ pkgs.python3 ]; }
       ''
@@ -29,6 +30,7 @@ let
   codexSeoConfig = "${config.home.homeDirectory}/.codex/seo.config.toml";
   codexOwnConfig = "${config.home.homeDirectory}/.codex/own.config.toml";
   codexSentryConfig = "${config.home.homeDirectory}/.codex/sentry.config.toml";
+  codexCloserConfig = "${config.home.homeDirectory}/.codex/closer.config.toml";
   aoeConfig = "${config.xdg.configHome}/agent-of-empires/config.toml";
   aoeSeoConfig = "${config.xdg.configHome}/agent-of-empires/profiles/seo/config.toml";
   aoeOwnConfig = "${config.xdg.configHome}/agent-of-empires/profiles/own/config.toml";
@@ -74,6 +76,11 @@ let
         --source ${codexSentryTemplate} \
         --target ${codexSentryConfig} \
         --lock ${codexSentryConfig}.lock
+
+      reconcile-agent-config \
+        --source ${codexCloserTemplate} \
+        --target ${codexCloserConfig} \
+        --lock ${codexCloserConfig}.lock
 
       reconcile-agent-config \
         --source ${aoeTemplate} \

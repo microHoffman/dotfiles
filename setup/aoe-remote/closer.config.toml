@@ -1,0 +1,3 @@
+[mcp_servers.posthog]
+url = "https://mcp.posthog.com/mcp"
+enabled = true

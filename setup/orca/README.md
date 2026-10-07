@@ -159,8 +159,9 @@ repository's base branch before creating worktrees. Repository credentials and
 toolchains must be available on the VM. Existing Codex profiles can still be
 launched from an Orca terminal, for example `codex --profile own`.
 
-`setup/orca/configure.sh` also upserts eight Global Quick Commands on the VM:
-**Codex · Default**, **Codex · OWN**, **Codex · SEO**, and **Codex · Sentry**.
+`setup/orca/configure.sh` also upserts nine Global Quick Commands on the VM:
+**Codex · Default**, **Codex · OWN**, **Codex · SEO**, **Codex · Sentry**, and
+**Codex · Closer** (`codex --profile closer`, with PostHog MCP).
 The matching **Claude** commands run `claude-profile default|own|seo|sentry`.
 Use the tab-bar Quick Commands menu to launch one in a fresh terminal in the
 selected workspace. They run `codex` or `codex --profile <name>` and therefore
