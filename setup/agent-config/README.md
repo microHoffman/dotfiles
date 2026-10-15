@@ -9,6 +9,7 @@ browser/Electron targets and work outside Orca, and project Playwright for E2E.
 
 `claude-settings.json` is merged into the mutable `~/.claude/settings.json`.
 Orca hooks, statusLine, permission rules, and other unrelated settings survive.
+It disables Claude attribution in new git commits with `attribution.commit = ""`.
 It selects `permissions.defaultMode = auto` (classifier-based approvals) and
 enables both project `CLAUDE.md` and `AGENTS.md` via Claude's built-in plugin.
 Auto mode still depends on account/model/organization availability; no login
